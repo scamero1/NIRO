@@ -1,0 +1,254 @@
+ANÁLISIS DEL PROYECTO ACTUAL:
+Tengo un diseño preliminar de Niro Streaming que necesita mejoras significativas. La versión actual tiene estructura básica pero carece de elementos premium, interactividad avanzada y experiencias innovadoras.
+
+OBJETIVO PRINCIPAL:
+Crear el diseño HTML más avanzado y premium posible para Niro Streaming que supere a Netflix, Prime Video y HBO Max en innovación visual y experiencia de usuario, manteniendo la facilidad de uso.
+
+MEJORAS REQUERIDAS (NIVEL PRO):
+
+## 1. SISTEMA DE DISEÑO AVANZADO:
+- Implementar **Design Tokens** CSS para consistencia
+- Crear **sistema de capas** (base, components, utilities)
+- **Variables CSS** para temas (light/dark mode ready)
+- **Breakpoints responsive** con 5 niveles (xs, sm, md, lg, xl)
+
+## 2. COMPONENTES PREMIUM AÑADIR:
+
+### a) HEADER MEJORADO:
+- **Search inteligente** con autocomplete y sugerencias
+- **Notifications bell** con contador de notificaciones
+- **User menu dropdown** con opciones avanzadas
+- **Watchlist indicator** (cuántos items en lista)
+- **Download status** (contenido disponible offline)
+
+### b) HERO INTERACTIVO:
+- **Video background** con overlay (opcional autoplay mute)
+- **Content rating** con detalles (IMDb, edad, duración)
+- **Interactive metadata** (géneros, actores, director)
+- **Trailer button** que abre modal con reproductor
+- **Add to watchlist** con feedback visual
+- **Share options** (redes sociales, enlace)
+
+### c) NUEVAS SECCIONES:
+1. **Personalized Recommendations** (Basado en historial)
+2. **Because you watched [X]** (Recomendaciones inteligentes)
+3. **Trending Now** (Contenido viral en tiempo real)
+4. **Friends are watching** (Integración social)
+5. **Continue on device** (Sync entre dispositivos)
+6. **Upcoming Releases** (Calendario de estrenos)
+7. **Top 10 in [Country]** (Rankings geolocalizados)
+8. **Award Winners** (Oscars, Emmys, etc.)
+
+### d) PLAYER OVERLAY AVANZADO:
+- **Mini player** que sigue scroll
+- **Quality selector** (480p, 720p, 1080p, 4K)
+- **Audio tracks** (idiomas disponibles)
+- **Subtitles** con personalización
+- **Playback speed** control
+- **Next episode** auto-play
+- **Skip intro** button detectado automático
+- **Behind the scenes** acceso
+
+## 3. INTERACTIVIDAD AVANZADA:
+
+### a) TARJETAS MEJORADAS:
+- **Hover preview** (autoplay trailer en miniatura)
+- **Quick actions** on hover (+, ✓, ⚙️)
+- **Progress ring** para series (episodios vistos)
+- **Content maturity** badge (18+, PG-13, etc.)
+- **Exclusive badge** (Solo en Niro)
+- **Dolby Atmos/4K HDR** badges
+- **Offline available** indicator
+
+### b) FILTROS AVANZADOS:
+- **Multi-select filters** (géneros, años, rating)
+- **Sort options** (popularidad, fecha, alfabético)
+- **Range sliders** (año, duración, rating)
+- **Search within results**
+- **Save filter presets**
+
+### c) GRIDS INTELIGENTES:
+- **Dynamic grid sizing** (2-6 columnas según contenido)
+- **Lazy loading** con skeleton screens
+- **Virtual scrolling** para grandes catálogos
+- **Group by** (género, año, estudio)
+
+## 4. ANIMACIONES Y MICROINTERACCIONES:
+- **Page transitions** suaves entre secciones
+- **Staggered animations** para grid items
+- **Ripple effects** en botones
+- **Skeleton loading** con gradient animation
+- **Pull to refresh** en móvil
+- **Infinite scrolling** con loading spinner
+- **Toast notifications** (añadido a lista, etc.)
+- **Tooltips** en iconos
+- **Confetti effect** al completar serie
+
+## 5. EXPERIENCIA PERSONALIZADA:
+
+### a) PERFILES MEJORADOS:
+- **Avatar customization** (color, icono, foto)
+- **Content restrictions** por perfil (niños)
+- **Watch history** por perfil
+- **Recommendation settings** (ajustar algoritmo)
+- **Auto-play settings** por perfil
+
+### b) LISTAS INTELIGENTES:
+- **Watchlist** con organización (ver más tarde, favoritos)
+- **Custom lists** (crear listas públicas/privadas)
+- **Collaborative lists** (compartir con amigos)
+- **Smart lists** (automáticas por criterios)
+
+### c) ESTADÍSTICAS PERSONALES:
+- **Watch time** dashboard (horas/día, géneros)
+- **Completion rate** (cuántas series completas)
+- **Discovery score** (nuevos géneros explorados)
+- **Achievements/badges** sistema gamificado
+
+## 6. DISEÑO RESPONSIVE PRO:
+
+### a) ADAPTACIONES ESPECÍFICAS:
+- **Mobile-first** con optimizaciones táctiles
+- **Tablet** layout con sidebar opcional
+- **Desktop** con múltiples columnas dinámicas
+- **TV/4K** optimización (botones grandes, navegación simple)
+- **Print styles** para listas de contenido
+
+### b) ACCESIBILIDAD COMPLETA:
+- **WCAG 2.1 AA** compliance
+- **Keyboard navigation** completa
+- **Screen reader** optimizations
+- **Focus management** en modales
+- **Reduced motion** support
+- **High contrast** mode
+- **Font size scaling** (100-200%)
+
+## 7. FEATURES TÉCNICOS AVANZADOS:
+
+### a) PERFORMANCE:
+- **Image optimization** (WebP, lazy loading, srcset)
+- **Code splitting** ready structure
+- **Critical CSS** inlined
+- **Prefetch** para navegación
+- **Service Worker** ready para PWA
+
+### b) ESTADO Y SINCRONIZACIÓN:
+- **Watch progress sync** entre dispositivos
+- **Offline queue** management
+- **Background sync** para acciones
+- **Multi-tab sync** (actualizaciones en tiempo real)
+
+### c) INTERNACIONALIZACIÓN:
+- **RTL support** (árabe, hebreo)
+- **Multi-language** UI
+- **Localized content** (catalogo por región)
+- **Currency formatting**
+
+## 8. DISEÑO VISUAL PRO:
+
+### a) EFECTOS VISUALES:
+- **Glassmorphism** en headers/modales
+- **Gradient animations** sutiles
+- **Parallax scrolling** en hero
+- **3D card flips** en detalles
+- **Particle background** en secciones especiales
+- **Custom scrollbars** estilo Niro
+
+### b) TYPOGRAPHY SYSTEM:
+- **3-level typography scale** (display, heading, body)
+- **Dynamic font loading** (variable fonts)
+- **Optical size adjustments**
+- **Line clamping** para títulos largos
+
+### c) ESPACIO Y LAYOUT:
+- **8px baseline grid** para consistencia
+- **Consistent spacing scale**
+- **Aspect ratio containers** para contenido
+- **Fluid typography** entre breakpoints
+
+## 9. SISTEMA DE CONTENIDO:
+
+### a) PÁGINA DE DETALLE MEJORADA:
+- **Cast carousel** con fotos y personajes
+- **Episode selector** con thumbnails
+- **Similar content** recommendations
+- **User reviews** y ratings
+- **Trivia and facts** sección
+- **Awards list** expandible
+
+### b) BROWSE EXPERIENCE:
+- **Explore by mood** (acción, relax, romance)
+- **Collections curated** (temáticas, festividades)
+- **Director/actor spotlight**
+- **Behind the scenes** contenido
+- **Deleted scenes** acceso
+
+## 10. INNOVACIONES ÚNICAS PARA NIRO:
+
+### a) NIRO EXCLUSIVES:
+- **Interactive episodes** (decisiones del usuario)
+- **Alternate endings** disponibles
+- **Director's commentary** integrado
+- **Easter eggs hunt** gamification
+
+### b) SOCIAL FEATURES:
+- **Watch parties** sincronizados
+- **Live reactions** durante viewing
+- **Content discussions** por episodio
+- **Friend recommendations**
+
+### c) DISCOVERY FEATURES:
+- **AI recommendation** con explicación
+- **Mood detection** (qué ver según estado de ánimo)
+- **Time-based** recomendaciones (mañana, tarde, noche)
+- **Skip prediction** (te puede gustar si saltas primeros 10 min)
+
+## 11. ESTRUCTURA DEL CÓDIGO:
+
+### a) HTML SEMANTICO COMPLETO:
+- **Landmark regions** (header, main, nav, footer)
+- **ARIA labels** y roles
+- **Microdata/Schema.org** para SEO
+- **Open Graph** tags para sharing
+
+### b) CSS ARQUITECTURA:
+- **BEM methodology** para naming
+- **Utility-first** donde aplica
+- **CSS custom properties** para theming
+- **Dark/light theme** con CSS variables
+
+### c) JAVASCRIPT MODULAR:
+- **ES6 modules** estructura
+- **Event delegation** para performance
+- **LocalStorage** para estado
+- **Intersection Observer** para lazy load
+- **Web Animations API** para animaciones complejas
+
+## 12. CONTENIDO DE DEMOSTRACIÓN:
+
+### a) DATOS COMPLETOS:
+- 50+ items de contenido con metadata completa
+- 5 perfiles de usuario diferentes
+- 10+ listas personalizadas
+- Estadísticas de visualización simuladas
+- Sistema de recomendaciones con lógica
+
+### b) ESTADOS DE UI:
+- Loading states (skeleton screens)
+- Empty states (lista vacía, sin resultados)
+- Error states (fallo de red, contenido no disponible)
+- Success states (añadido, completado, compartido)
+
+## INSTRUCCIONES FINALES:
+
+Genera TODO el código en un SOLO archivo HTML que incluya:
+1. HTML semántico completo
+2. CSS avanzado con todas las features mencionadas
+3. JavaScript modular para todas las interacciones
+4. Datos de demostración integrados
+5. Optimización para performance
+6. Comentarios en código para explicar features avanzadas
+
+El diseño final debe ser una PWA-ready, accesible, responsive, y visualmente impresionante que establezca un nuevo estándar en plataformas de streaming.
+
+Prioriza features únicas que diferencien a Niro, manteniendo la intuitividad de Netflix pero con 10x más innovación.

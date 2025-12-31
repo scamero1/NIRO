@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+dist/
+build/
+*.spec
+*.log
+.DS_Store
+NIRO_Deploy.zip

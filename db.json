@@ -1,0 +1,65 @@
+{
+  "items": [],
+  "favorites": [],
+  "user": null,
+  "users": [
+    {
+      "banned": false,
+      "email": "admin@niro.com",
+      "name": "Administrador",
+      "password": "admin123",
+      "profiles": [
+        {
+          "avatar": "https://i.pinimg.com/736x/c4/88/34/c488340ad56e5454f4576f6c708b3482.jpg",
+          "continueWatching": [
+            {
+              "duration": 6524.949333,
+              "itemId": 1766252229155,
+              "lastWatched": 1767148435745,
+              "seriesId": null,
+              "time": 503.305675,
+              "title": "Zootopia"
+            }
+          ],
+          "id": 1767033912684,
+          "name": "Administrador"
+        }
+      ],
+      "role": "admin"
+    },
+    {
+      "banned": false,
+      "email": "sebascamerod@gmail.com",
+      "myList": [],
+      "name": "Sebastian Camero",
+      "password": "21390111",
+      "profiles": [
+        {
+          "autoplayNext": true,
+          "autoplayPreviews": true,
+          "avatar": "https://wallpapers.com/images/hd/netflix-profile-pictures-1000-x-1000-88wkdmjrorckekha.jpg",
+          "continueWatching": [
+            {
+              "itemId": 1766281129728,
+              "seriesId": 1766253902739,
+              "time": 34.61751,
+              "duration": 3225.888,
+              "title": "Bienvenidos a Derry - El pueblo que sonríe",
+              "lastWatched": 1767148485334
+            }
+          ],
+          "id": 1767066377368,
+          "language": "es",
+          "maturity": "all",
+          "name": "Sebastian Camero",
+          "pin": ""
+        }
+      ],
+      "role": "user",
+      "status": "active"
+    }
+  ],
+  "codes": [],
+  "pendingVerifyEmail": null,
+  "notifications": []
+}

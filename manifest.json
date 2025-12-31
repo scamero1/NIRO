@@ -1,0 +1,21 @@
+{
+  "name": "NIRO | Cinematic Streaming",
+  "short_name": "NIRO",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F0720",
+  "theme_color": "#0F0720",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

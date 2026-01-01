@@ -1,4 +1,4 @@
-const CACHE_NAME = 'niro-cache-v1';
+const CACHE_NAME = 'niro-cache-v3'; // Bumped version
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -7,46 +7,69 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', (event) => {
+  // Do NOT skipWaiting automatically. Wait for user action.
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(ASSETS_TO_CACHE))
   );
 });
 
+self.addEventListener('activate', (event) => {
+  // Claim clients immediately so the new SW controls the page
+  event.waitUntil(clients.claim());
+  
+  // Clean up old caches
+  event.waitUntil(
+      caches.keys().then((cacheNames) => {
+          return Promise.all(
+              cacheNames.map((cacheName) => {
+                  if (cacheName !== CACHE_NAME) {
+                      return caches.delete(cacheName);
+                  }
+              })
+          );
+      })
+  );
+});
+
+// Handle messages from client
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  if (event.request.url.includes('/db')) {
-    // Network first, then cache
+  // API calls - Network first
+  if (event.request.url.includes('/db') || event.request.url.includes('/upload')) {
     event.respondWith(
       fetch(event.request)
-        .then(response => {
-          const clonedResponse = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clonedResponse));
-          return response;
-        })
-        .catch(() => caches.match(event.request).then(res => {
-            if(res) return res;
-            return new Response(JSON.stringify({ items: [], users: [] }), {
-                headers: { 'Content-Type': 'application/json' }
-            });
+        .catch(() => new Response(JSON.stringify({ error: 'Network error' }), {
+            headers: { 'Content-Type': 'application/json' }
         }))
     );
     return;
   }
 
-  // Navigation fallback (for SPA)
-  if (event.request.mode === 'navigate') {
+  // HTML / Navigation - Network First to ensure updates are seen
+  if (event.request.mode === 'navigate' || event.request.headers.get('accept').includes('text/html')) {
     event.respondWith(
       fetch(event.request)
+        .then(response => {
+            const clonedResponse = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clonedResponse));
+            return response;
+        })
         .catch(() => {
-          return caches.match('/index.html');
+          return caches.match('/index.html') || caches.match('/');
         })
     );
     return;
   }
 
-  // Cache first, then network (Stale-while-revalidate logic slightly modified for simplicity)
+  // Static Assets - Cache First
   event.respondWith(
     caches.match(event.request)
       .then((response) => {

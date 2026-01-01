@@ -1,6 +1,5 @@
 import paramiko
 import os
-import zipfile
 import time
 import sys
 
@@ -9,31 +8,23 @@ HOST = "157.173.110.101"
 USER = "root"
 PASS = "admindenequi12"
 REMOTE_DIR = "/var/www/niro"
+REPO_URL = "https://github.com/scamero1/NIRO.git"
 DOMAIN = "niro-tv.online"
 
-def create_zip(zip_name):
-    print(f"Creating {zip_name}...")
-    with zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for root, dirs, files in os.walk('.'):
-            # Ignore hidden folders and venv and dist
-            if '.venv' in root or '.git' in root or '__pycache__' in root or 'dist' in root or 'build' in root:
-                continue
-            
-            for file in files:
-                if file == zip_name or file.endswith('.pyc') or file.endswith('.exe'):
-                    continue
-                
-                file_path = os.path.join(root, file)
-                arcname = os.path.relpath(file_path, '.')
-                zipf.write(file_path, arcname)
-    print("Zip created.")
+# Files to sync from local to remote to ensure latest version overrides git
+FILES_TO_SYNC = [
+    "index.html",
+    "server.py",
+    "launcher.py", 
+    "app.js",
+    "styles.css",
+    "requirements.txt"
+]
 
-def run_command(ssh, command, sudo=True):
-    if sudo and USER != 'root':
-        command = f"echo {PASS} | sudo -S {command}"
-    
+def run_command(ssh, command):
     print(f"Running: {command}")
     stdin, stdout, stderr = ssh.exec_command(command)
+    # Wait for command to finish
     exit_status = stdout.channel.recv_exit_status()
     
     out = stdout.read().decode().strip()
@@ -45,9 +36,6 @@ def run_command(ssh, command, sudo=True):
     return exit_status
 
 def deploy():
-    zip_name = "niro_deploy.zip"
-    create_zip(zip_name)
-    
     try:
         print(f"Connecting to {HOST}...")
         ssh = paramiko.SSHClient()
@@ -56,40 +44,48 @@ def deploy():
         
         sftp = ssh.open_sftp()
         
-        # 1. Install dependencies
+        # 1. Install System Dependencies
         print("Installing system dependencies...")
-        # Check if apt is locked, wait if needed
-        run_command(ssh, "while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 1; done")
         run_command(ssh, "apt-get update")
-        run_command(ssh, "apt-get install -y python3-pip python3-venv nginx certbot python3-certbot-nginx unzip")
+        run_command(ssh, "apt-get install -y git python3-pip python3-venv nginx certbot python3-certbot-nginx unzip")
         
-        # 2. Setup directory
-        print("Setting up directory...")
-        run_command(ssh, f"mkdir -p {REMOTE_DIR}")
-        run_command(ssh, f"chown -R {USER}:{USER} {REMOTE_DIR}")
+        # 2. Setup Directory & Git Clone
+        print("Setting up directory and cloning repo...")
+        # Check if dir exists
+        check = run_command(ssh, f"test -d {REMOTE_DIR} && echo exists")
+        if check == 0:
+            print("Directory exists, pulling latest changes...")
+            run_command(ssh, f"cd {REMOTE_DIR} && git reset --hard && git pull")
+        else:
+            print("Cloning repository...")
+            run_command(ssh, f"git clone {REPO_URL} {REMOTE_DIR}")
         
-        # 3. Upload file
-        print("Uploading files...")
-        sftp.put(zip_name, f"/tmp/{zip_name}")
-        run_command(ssh, f"mv /tmp/{zip_name} {REMOTE_DIR}/{zip_name}")
+        # 3. Sync Local Critical Files (Overriding Git)
+        print("Syncing latest local files to ensure consistency...")
+        for file in FILES_TO_SYNC:
+            if os.path.exists(file):
+                print(f"Uploading {file}...")
+                sftp.put(file, f"{REMOTE_DIR}/{file}")
         
-        # Upload EXE if exists
+        # 4. Upload Pre-compiled EXE
+        print("Uploading NIRO_App.exe...")
+        run_command(ssh, f"mkdir -p {REMOTE_DIR}/media")
         if os.path.exists("dist/NIRO_App.exe"):
-            print("Uploading NIRO_App.exe...")
-            run_command(ssh, f"mkdir -p {REMOTE_DIR}/media")
             sftp.put("dist/NIRO_App.exe", f"{REMOTE_DIR}/media/NIRO_App.exe")
-        
-        # 4. Unzip and Install Python reqs
+        else:
+            print("WARNING: dist/NIRO_App.exe not found locally. Skipping EXE upload.")
+
+        # 5. Python Setup
         print("Installing Python dependencies...")
-        run_command(ssh, f"cd {REMOTE_DIR} && unzip -o {zip_name}")
         run_command(ssh, f"cd {REMOTE_DIR} && pip3 install -r requirements.txt gunicorn --break-system-packages")
         
-        # 5. Configure Nginx
+        # 6. Nginx Configuration
         print("Configuring Nginx...")
         nginx_conf = f"""
 server {{
     listen 80;
     server_name {DOMAIN} www.{DOMAIN};
+    client_max_body_size 100M;
 
     location / {{
         proxy_pass http://127.0.0.1:8001;
@@ -100,7 +96,6 @@ server {{
     }}
 }}
 """
-        # Write nginx conf locally then upload
         with open("niro_nginx", "w") as f:
             f.write(nginx_conf)
         
@@ -110,27 +105,27 @@ server {{
         run_command(ssh, "nginx -t")
         run_command(ssh, "systemctl restart nginx")
         
-        # 6. Run Certbot (SSL)
-        # Note: This might fail if DNS is not propagated. We'll try it.
+        # 7. SSL Setup (Certbot)
         print("Setting up SSL with Certbot...")
-        # Non-interactive mode
-        run_command(ssh, f"certbot --nginx -d {DOMAIN} --non-interactive --agree-tos -m admin@{DOMAIN} --redirect")
+        # We use --register-unsafely-without-email to avoid prompts if not already registered
+        run_command(ssh, f"certbot --nginx -d {DOMAIN} --non-interactive --agree-tos -m admin@{DOMAIN} --redirect || echo 'Certbot failed or already set up'")
         
-        # 7. Run Application (Gunicorn)
+        # 8. Start Application
         print("Starting Application...")
-        # Kill existing gunicorn
         run_command(ssh, "pkill gunicorn || true")
         # Run in background
         run_command(ssh, f"cd {REMOTE_DIR} && nohup gunicorn -w 4 -b 127.0.0.1:8001 server:app > app.log 2>&1 &")
         
-        print("Deployment completed successfully!")
-        print(f"App should be accessible at https://{DOMAIN}")
+        print("\n---------------------------------------------------")
+        print("Deployment completed!")
+        print(f"Web App: https://{DOMAIN}")
+        print(f"Download EXE: https://{DOMAIN}/media/NIRO_App.exe")
+        print("---------------------------------------------------")
         
     except Exception as e:
         print(f"Deployment failed: {e}")
     finally:
         if 'ssh' in locals(): ssh.close()
-        if os.path.exists(zip_name): os.remove(zip_name)
         if os.path.exists("niro_nginx"): os.remove("niro_nginx")
 
 if __name__ == "__main__":

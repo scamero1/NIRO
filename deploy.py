@@ -14,6 +14,8 @@ DOMAIN = "niro-tv.online"
 # Files to sync from local to remote to ensure latest version overrides git
 FILES_TO_SYNC = [
     "index.html",
+    "index_v3.html",
+    "sw.js",
     "server.py",
     "launcher.py", 
     "app.js",
@@ -68,12 +70,15 @@ def deploy():
                 sftp.put(file, f"{REMOTE_DIR}/{file}")
         
         # 4. Upload Pre-compiled EXE
-        print("Uploading NIRO_App.exe...")
-        run_command(ssh, f"mkdir -p {REMOTE_DIR}/media")
-        if os.path.exists("dist/NIRO_App.exe"):
-            sftp.put("dist/NIRO_App.exe", f"{REMOTE_DIR}/media/NIRO_App.exe")
-        else:
-            print("WARNING: dist/NIRO_App.exe not found locally. Skipping EXE upload.")
+        # print("Uploading NIRO_App.exe...")
+        # run_command(ssh, f"mkdir -p {REMOTE_DIR}/media")
+        # if os.path.exists("dist/NIRO_App.exe"):
+        #     try:
+        #         sftp.put("dist/NIRO_App.exe", f"{REMOTE_DIR}/media/NIRO_App.exe")
+        #     except Exception as e:
+        #         print(f"Error uploading EXE: {e}")
+        # else:
+        #     print("WARNING: dist/NIRO_App.exe not found locally. Skipping EXE upload.")
 
         # 5. Python Setup
         print("Installing Python dependencies...")

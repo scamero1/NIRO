@@ -1,16 +1,40 @@
 {
-  "items": [],
+  "items": [
+    {
+      "awards": "",
+      "cast": "",
+      "desc": "prueba ",
+      "director": "",
+      "genre": "Animación",
+      "id": 1767823019361,
+      "img": "/media/images/675f765d802b4958989ce89fd9e04a50.jpg",
+      "isUpcoming": true,
+      "match": "98",
+      "rating": "16+",
+      "releaseDate": "",
+      "title": "Zootopia",
+      "trailer": "",
+      "type": "movie",
+      "video": "",
+      "year": "2024"
+    }
+  ],
   "favorites": [],
   "user": null,
   "users": [
     {
       "banned": false,
       "email": "admin@niro.com",
+      "myList": [
+        1767823019361
+      ],
       "name": "Administrador",
       "password": "admin123",
       "profiles": [
         {
-          "avatar": "https://i.pinimg.com/736x/c4/88/34/c488340ad56e5454f4576f6c708b3482.jpg",
+          "autoplayNext": true,
+          "autoplayPreviews": true,
+          "avatar": "https://wallpapers.com/images/hd/netflix-profile-pictures-1000-x-1000-88wkdmjrorckekha.jpg",
           "continueWatching": [
             {
               "duration": 6524.949333,
@@ -22,7 +46,10 @@
             }
           ],
           "id": 1767033912684,
-          "name": "Administrador"
+          "language": "es",
+          "maturity": "all",
+          "name": "Administrador",
+          "pin": ""
         }
       ],
       "role": "admin"
@@ -40,12 +67,12 @@
           "avatar": "https://wallpapers.com/images/hd/netflix-profile-pictures-1000-x-1000-88wkdmjrorckekha.jpg",
           "continueWatching": [
             {
+              "duration": 3225.888,
               "itemId": 1766281129728,
+              "lastWatched": 1767148485334,
               "seriesId": 1766253902739,
               "time": 34.61751,
-              "duration": 3225.888,
-              "title": "Bienvenidos a Derry - El pueblo que sonríe",
-              "lastWatched": 1767148485334
+              "title": "Bienvenidos a Derry - El pueblo que sonríe"
             }
           ],
           "id": 1767066377368,

@@ -46,11 +46,21 @@ def get_db():
 
 @app.route('/')
 def index():
-    return send_from_directory(BASE_DIR, 'index.html')
+    # SERVING index.html (Main App)
+    response = send_from_directory(BASE_DIR, 'index.html')
+    # FORCE NO CACHE
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/<path:path>')
 def serve_static(path):
-    return send_from_directory(BASE_DIR, path)
+    response = send_from_directory(BASE_DIR, path)
+    static_ext = ('.js', '.css', '.png', '.jpg', '.jpeg', '.svg', '.ico', '.webp')
+    if any(path.endswith(ext) for ext in static_ext):
+        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    return response
 
 @app.post('/db')
 def set_db():
@@ -89,10 +99,65 @@ def upload_video():
     f.save(path)
     return jsonify({"url": f"/media/videos/{fname}"})
 
+@app.post('/upload/chunk')
+def upload_chunk():
+    chunk = request.files.get('chunk')
+    if not chunk:
+        return jsonify({"error": "chunk required"}), 400
+        
+    upload_id = request.form.get('uploadId')
+    chunk_index = int(request.form.get('chunkIndex', 0))
+    total_chunks = int(request.form.get('totalChunks', 1))
+    file_name = request.form.get('fileName')
+    
+    if not upload_id:
+        return jsonify({"error": "uploadId required"}), 400
+
+    # Temp file path
+    temp_dir = os.path.join(MEDIA_ROOT, 'temp')
+    os.makedirs(temp_dir, exist_ok=True)
+    temp_path = os.path.join(temp_dir, f"{upload_id}.part")
+    
+    # Append chunk
+    mode = 'ab' if chunk_index > 0 else 'wb'
+    with open(temp_path, mode) as f:
+        f.write(chunk.read())
+        
+    # Check if finished
+    if chunk_index == total_chunks - 1:
+        # Move to final destination
+        ext = os.path.splitext(file_name)[1] if file_name else '.mp4'
+        final_name = f"{uuid.uuid4().hex}{ext}"
+        final_path = os.path.join(VIDEOS_DIR, final_name)
+        
+        os.rename(temp_path, final_path)
+        
+        # Auto-Notification
+        try:
+            cur = read_db()
+            notif = {
+                "id": str(uuid.uuid4()),
+                "title": "Nuevo Contenido",
+                "message": f"Se ha añadido nuevo contenido: {file_name}",
+                "date": int(__import__('time').time() * 1000),
+                "read": False
+            }
+            if "notifications" not in cur:
+                cur["notifications"] = []
+            cur["notifications"].insert(0, notif)
+            write_db(cur)
+        except Exception as e:
+            print(f"Error creating notification: {e}")
+            
+        return jsonify({"url": f"/media/videos/{final_name}", "done": True})
+        
+    return jsonify({"done": False})
+
 @app.get('/media/<path:subpath>')
 def serve_media(subpath):
-    # Sirve archivos desde ./media
-    return send_from_directory(MEDIA_ROOT, subpath, as_attachment=False)
+    response = send_from_directory(MEDIA_ROOT, subpath, as_attachment=False)
+    response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    return response
 
 @app.post('/delete')
 def delete_media():
@@ -140,6 +205,36 @@ def delete_media_get():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.post('/api/notifications/send')
+def send_notification():
+    data = request.get_json(force=True) or {}
+    title = data.get('title')
+    message = data.get('message')
+    
+    if not title or not message:
+        return jsonify({"error": "title and message required"}), 400
+        
+    cur = read_db()
+    notif = {
+        "id": str(uuid.uuid4()),
+        "title": title,
+        "message": message,
+        "date": int(__import__('time').time() * 1000),
+        "read": False
+    }
+    
+    if "notifications" not in cur:
+        cur["notifications"] = []
+    
+    # Add to start of list
+    cur["notifications"].insert(0, notif)
+    
+    # Limit to last 50 notifications
+    cur["notifications"] = cur["notifications"][:50]
+    
+    write_db(cur)
+    return jsonify({"ok": True, "notification": notif})
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8001))
-    app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get('PORT', 8000))
+    app.run(host='0.0.0.0', port=port, threaded=True)

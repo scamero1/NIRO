@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>NIRO</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #000000;
+            --surface-color: #121212;
+            --primary-color: #E50914; /* Netflix Red vibe */
+            --text-primary: #FFFFFF;
+            --text-secondary: #A3A3A3;
+            --nav-height: 60px;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Utilities */
+        .hidden { display: none !important; }
+        .flex-center { display: flex; align-items: center; justify-content: center; }
+        .full-screen { width: 100vw; height: 100vh; }
+        
+        /* Skeleton Loading */
+        .skeleton {
+            background: #1a1a1a;
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* Typography */
+        h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.5px; }
+        
+        /* Bottom Navigation (Mobile First) */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            height: calc(var(--nav-height) + env(safe-area-inset-bottom));
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex; justify-content: space-around;
+            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        .nav-item {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text-secondary); font-size: 10px; gap: 4px;
+            cursor: pointer; transition: color 0.2s;
+        }
+        .nav-item i { font-size: 22px; margin-bottom: 2px; transition: transform 0.2s; }
+        .nav-item.active { color: var(--text-primary); }
+        .nav-item.active i { transform: scale(1.1); color: var(--text-primary); }
+        .nav-item:active { transform: scale(0.95); }
+
+        /* Desktop Navigation Override */
+        @media (min-width: 769px) {
+            .bottom-nav {
+                top: 0; bottom: auto; height: 70px;
+                background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+                backdrop-filter: none; border: none;
+                justify-content: flex-start; padding: 0 4%; gap: 30px;
+                align-items: center;
+            }
+            .nav-item { flex: 0 0 auto; flex-direction: row; font-size: 14px; gap: 8px; }
+            .nav-item i { display: none; } /* Text only on desktop header usually, or icon+text */
+            .nav-item span { font-weight: 500; }
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative; height: 80vh; width: 100%;
+            background-size: cover; background-position: center;
+            display: flex; flex-direction: column; justify-content: flex-end;
+            padding: 20px;
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%); /* Fade out bottom */
+            -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+        }
+        .hero::before {
+            content:''; position: absolute; inset: 0;
+            background: linear-gradient(to top, var(--bg-color) 0%, transparent 60%);
+        }
+        .hero-content { position: relative; z-index: 10; padding-bottom: 60px; max-width: 800px; }
+        .hero-title { font-size: 3rem; margin-bottom: 10px; line-height: 1.1; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .hero-meta { display: flex; gap: 10px; font-size: 0.9rem; color: #ccc; margin-bottom: 15px; align-items: center; }
+        .match-badge { color: #46d369; font-weight: 800; }
+        
+        .hero-actions { display: flex; gap: 10px; }
+        .btn {
+            border: none; padding: 10px 20px; border-radius: 4px;
+            font-weight: 600; font-size: 1rem; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: white; color: black; }
+        .btn-secondary { background: rgba(109, 109, 110, 0.7); color: white; backdrop-filter: blur(10px); }
+
+        /* Carousel / Grid */
+        .category-title { font-size: 1.2rem; margin: 20px 0 10px 20px; font-weight: 600; color: #e5e5e5; }
+        .media-scroller {
+            display: flex; overflow-x: auto; gap: 10px; padding: 0 20px 20px 20px;
+            scrollbar-width: none; /* Firefox */
+        }
+        .media-scroller::-webkit-scrollbar { display: none; }
+        
+        .media-card {
+            flex: 0 0 auto; width: 110px; aspect-ratio: 2/3;
+            background: #222; border-radius: 4px; overflow: hidden;
+            position: relative; transition: transform 0.2s;
+        }
+        .media-card img { width: 100%; height: 100%; object-fit: cover; }
+        .media-card:active { transform: scale(0.95); }
+
+        /* Vibe Categories (Mobile Vertical Carousel / Desktop Grid) */
+        .vibe-section { margin: 20px 0; }
+        .vibe-card {
+            width: 100%; height: 150px; margin-bottom: 10px;
+            border-radius: 8px; overflow: hidden; position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .vibe-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6); }
+        .vibe-card span { position: relative; z-index: 2; font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+
+        /* Profiles */
+        .profile-gate {
+            position: fixed; inset: 0; background: var(--bg-color); z-index: 2000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 1; transition: opacity 0.5s;
+        }
+        .profile-grid { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 800px; }
+        .profile-item { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; }
+        .profile-avatar { width: 100px; height: 100px; border-radius: 4px; object-fit: cover; transition: border 0.2s; border: 2px solid transparent; }
+        .profile-item:hover .profile-avatar { border-color: white; }
+        .profile-name { color: #808080; font-size: 1.2rem; transition: color 0.2s; }
+        .profile-item:hover .profile-name { color: white; }
+
+        /* Login */
+        .login-container { width: 100%; max-width: 400px; padding: 20px; background: rgba(0,0,0,0.7); border-radius: 8px; }
+        .input-group { margin-bottom: 15px; }
+        .input-group input { width: 100%; padding: 12px; background: #333; border: none; border-radius: 4px; color: white; }
+        
+        /* Video Player Overlay */
+        .video-overlay {
+            position: fixed; inset: 0; background: black; z-index: 3000;
+            display: flex; align-items: center; justify-content: center;
+        }
+        video { width: 100%; height: 100%; }
+        .close-video { position: absolute; top: 20px; right: 20px; color: white; font-size: 2rem; cursor: pointer; z-index: 3001; background: rgba(0,0,0,0.5); border-radius: 50%; padding: 5px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- CRITICAL ERROR HANDLER -->
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            console.error("Global Error:", msg);
+            // Show alert if body is empty or stuck
+            setTimeout(() => {
+                if(!document.getElementById('app-shell') || document.getElementById('app-shell').innerHTML.trim() === '') {
+                     document.body.innerHTML = `<div style="padding:40px;color:red;">CRITICAL ERROR:<br>${msg}<br>Line: ${line}</div>`;
+                }
+            }, 3000);
+        };
+    </script>
+
+    <!-- App Container -->
+    <div id="app">
+        
+        <!-- Login View -->
+        <div id="view-login" class="full-screen flex-center" style="background-image:url('https://assets.nflxext.com/ffe/siteui/vlv3/ab180a27-b661-44cd-9541-9e7e5dded12d/web/MX-es-20231113-TRIFECTA-perspective_2297597a-2453-4315-bd3a-599c279a0b0d_large.jpg'); background-size:cover;">
+            <div style="position:absolute; inset:0; background:rgba(0,0,0,0.6);"></div>
+            <div class="login-container" style="position:relative; z-index:10;">
+                <h2 style="margin-bottom:20px;">Inicia sesión</h2>
+                <div class="input-group"><input type="email" id="login-email" placeholder="Email o número"></div>
+                <div class="input-group"><input type="password" id="login-pass" placeholder="Contraseña"></div>
+                <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="app.login()">Iniciar sesión</button>
+            </div>
+        </div>
+
+        <!-- Profile Selection View -->
+        <div id="view-profiles" class="profile-gate hidden">
+            <h2 style="margin-bottom:30px; font-size:2.5rem;">¿Quién está viendo ahora?</h2>
+            <div class="profile-grid" id="profile-list-container">
+                <!-- JS Generated -->
+            </div>
+        </div>
+
+        <!-- Main App Shell -->
+        <div id="app-shell" class="hidden">
+            <!-- Content Area -->
+            <div id="main-content" style="padding-bottom: 80px;">
+                <!-- JS Injected Content -->
+            </div>
+
+            <!-- Bottom Navigation -->
+            <div class="bottom-nav">
+                <div class="nav-item active" onclick="app.router('home')">
+                    <i class="ri-home-5-fill"></i>
+                    <span>Inicio</span>
+                </div>
+                <div class="nav-item" onclick="app.router('series')">
+                    <i class="ri-tv-line"></i>
+                    <span>Series</span>
+                </div>
+                <div class="nav-item" onclick="app.router('movies')">
+                    <i class="ri-movie-2-line"></i>
+                    <span>Películas</span>
+                </div>
+                <div class="nav-item" onclick="app.router('downloads')">
+                    <i class="ri-download-cloud-2-line"></i>
+                    <span>Descargas</span>
+                </div>
+                <div class="nav-item" onclick="app.toggleProfileMenu()">
+                    <img id="nav-avatar" src="" style="width:24px; height:24px; border-radius:4px; object-fit:cover;">
+                    <span>Perfil</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Player -->
+        <div id="video-player-container" class="video-overlay hidden">
+            <i class="ri-close-line close-video" onclick="app.closeVideo()"></i>
+            <video id="main-video" controls playsinline></video>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Core Application Logic ---
+        
+        const app = {
+            state: {
+                user: null,
+                currentProfile: null,
+                data: { items: [], users: [] }
+            },
+
+            init: async () => {
+                console.log("App initializing...");
+                
+                // 1. Check Fetch
+                if(!window.fetch) { alert("Tu navegador es obsoleto."); return; }
+
+                // 2. Fetch Data
+                try {
+                    const res = await fetch('/db');
+                    if(res.ok) {
+                        const db = await res.json();
+                        app.state.data.items = db.items || [];
+                        app.state.data.users = db.users || [];
+                    }
+                } catch(e) { console.error("DB Error", e); }
+
+                // 3. Check Session
+                const savedUser = localStorage.getItem('niro_user');
+                if(savedUser) {
+                    const parsed = JSON.parse(savedUser);
+                    // Validate against fresh DB
+                    const validUser = app.state.data.users.find(u => u.email === parsed.email);
+                    if(validUser) {
+                        app.state.user = validUser;
+                        app.showProfiles();
+                    } else {
+                        app.showLogin();
+                    }
+                } else {
+                    app.showLogin();
+                }
+            },
+
+            showLogin: () => {
+                document.getElementById('view-login').classList.remove('hidden');
+                document.getElementById('view-profiles').classList.add('hidden');
+                document.getElementById('app-shell').classList.add('hidden');
+            },
+
+            login: async () => {
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-pass').value;
+                
+                // Simple validation
+                const user = app.state.data.users.find(u => u.email === email && u.password === pass);
+                if(user) {
+                    app.state.user = user;
+                    localStorage.setItem('niro_user', JSON.stringify(user));
+                    
+                    // Ensure profiles exist
+                    if(!user.profiles || user.profiles.length === 0) {
+                        user.profiles = [{ id: Date.now(), name: user.name, avatar: 'https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png' }];
+                    }
+                    
+                    app.showProfiles();
+                } else {
+                    alert("Credenciales incorrectas");
+                }
+            },
+
+            showProfiles: () => {
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('app-shell').classList.add('hidden');
+                
+                const container = document.getElementById('profile-list-container');
+                container.innerHTML = app.state.user.profiles.map(p => `
+                    <div class="profile-item" onclick="app.selectProfile(${p.id})">
+                        <img src="${p.avatar}" class="profile-avatar">
+                        <span class="profile-name">${p.name}</span>
+                    </div>
+                `).join('') + `
+                    <div class="profile-item" onclick="alert('Función de agregar perfil próximamente')">
+                        <div class="profile-avatar flex-center" style="background:#333; font-size:3rem; color:#aaa;">+</div>
+                        <span class="profile-name">Agregar</span>
+                    </div>
+                `;
+                
+                const view = document.getElementById('view-profiles');
+                view.classList.remove('hidden');
+                // Animation fix
+                setTimeout(() => view.style.opacity = '1', 10);
+            },
+
+            selectProfile: (id) => {
+                const profile = app.state.user.profiles.find(p => p.id === id);
+                if(profile) {
+                    app.state.currentProfile = profile;
+                    // Update Nav Avatar
+                    document.getElementById('nav-avatar').src = profile.avatar;
+                    
+                    // Transition
+                    const view = document.getElementById('view-profiles');
+                    view.style.opacity = '0';
+                    setTimeout(() => {
+                        view.classList.add('hidden');
+                        document.getElementById('app-shell').classList.remove('hidden');
+                        app.router('home');
+                    }, 500);
+                }
+            },
+
+            router: (route) => {
+                // Update Nav UI
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                // Simple matching based on onclick handler is redundant but visually:
+                // Note: Real routing usually updates URL history, simplified here for PWA feel.
+                
+                const content = document.getElementById('main-content');
+                content.innerHTML = ''; // Clear
+
+                if(route === 'home') app.renderHome(content);
+                else if(route === 'movies') app.renderGrid(content, 'movie');
+                else if(route === 'series') app.renderGrid(content, 'series');
+                else content.innerHTML = `<div style="padding:50px; text-align:center;">Sección ${route} en construcción</div>`;
+                
+                window.scrollTo(0,0);
+            },
+
+            renderHome: (container) => {
+                // Featured Content (La Hermanastra - Logic Placeholder)
+                // We pick a random item or specific one
+                const featured = app.state.data.items[0] || { title: "Cargando...", img: "", desc: "" };
+                
+                container.innerHTML = `
+                    <div class="hero" style="background-image: url('${featured.img || 'https://wallpapercave.com/wp/wp5778784.jpg'}');">
+                        <div class="hero-content">
+                            <h1 class="hero-title">${featured.title}</h1>
+                            <div class="hero-meta">
+                                <span class="match-badge">98% para ti</span>
+                                <span>2024</span>
+                                <span style="border:1px solid #666; padding:0 4px; font-size:0.7rem;">16+</span>
+                                <span>5 Temporadas</span>
+                            </div>
+                            <div class="hero-actions">
+                                <button class="btn btn-primary" onclick="app.playVideo('${featured.video || ''}')">
+                                    <i class="ri-play-fill"></i> Reproducir
+                                </button>
+                                <button class="btn btn-secondary">
+                                    <i class="ri-information-line"></i> Info
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vibe Check (Mobile Optimized) -->
+                    <h3 class="category-title">¿QUE VIBE TIENES HOY?</h3>
+                    <div class="media-scroller">
+                        <div class="media-card" style="width:140px; aspect-ratio:16/9; background:#330000;" onclick="app.filterVibe('terror')">
+                             <div class="flex-center" style="height:100%; color:white; font-weight:bold;">TERROR</div>
+                        </div>
+                         <div class="media-card" style="width:140px; aspect-ratio:16/9; background:#000033;" onclick="app.filterVibe('sci-fi')">
+                             <div class="flex-center" style="height:100%; color:white; font-weight:bold;">SCI-FI</div>
+                        </div>
+                         <div class="media-card" style="width:140px; aspect-ratio:16/9; background:#333300;" onclick="app.filterVibe('chill')">
+                             <div class="flex-center" style="height:100%; color:white; font-weight:bold;">CHILL</div>
+                        </div>
+                    </div>
+
+                    <!-- Categories -->
+                    ${app.renderRow("Continuar viendo", app.state.data.items.slice(0, 5))}
+                    ${app.renderRow("Tendencias ahora", app.state.data.items)}
+                    ${app.renderRow("Solo en NIRO", app.state.data.items.slice(2, 8))}
+                `;
+            },
+
+            renderRow: (title, items) => {
+                if(!items || items.length === 0) return '';
+                return `
+                    <h3 class="category-title">${title}</h3>
+                    <div class="media-scroller">
+                        ${items.map(i => `
+                            <div class="media-card" onclick="app.playVideo('${i.video || ''}')">
+                                <img src="${i.img}" loading="lazy" alt="${i.title}">
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            },
+
+            renderGrid: (container, type) => {
+                const items = app.state.data.items.filter(i => i.type === type || type === 'all');
+                container.innerHTML = `
+                    <h2 style="padding: 20px 20px 0;">${type === 'movie' ? 'Películas' : 'Series'}</h2>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap:10px; padding:20px;">
+                        ${items.map(i => `
+                            <div class="media-card" style="width:100%;" onclick="app.playVideo('${i.video || ''}')">
+                                <img src="${i.img}" loading="lazy">
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            },
+
+            playVideo: (url) => {
+                if(!url) return alert("Video no disponible");
+                const v = document.getElementById('main-video');
+                const c = document.getElementById('video-player-container');
+                
+                if (url.includes('.m3u8')) {
+                    if (v.canPlayType('application/vnd.apple.mpegurl')) {
+                        v.src = url;
+                    } else if (window.Hls) {
+                        if(window.hlsInstance) window.hlsInstance.destroy();
+                        window.hlsInstance = new Hls();
+                        window.hlsInstance.loadSource(url);
+                        window.hlsInstance.attachMedia(v);
+                    } else {
+                        // Load HLS dynamically if missing
+                        const script = document.createElement('script');
+                        script.src = "https://cdn.jsdelivr.net/npm/hls.js@latest";
+                        script.onload = () => {
+                            window.hlsInstance = new Hls();
+                            window.hlsInstance.loadSource(url);
+                            window.hlsInstance.attachMedia(v);
+                            v.play();
+                        };
+                        document.head.appendChild(script);
+                        c.classList.remove('hidden');
+                        return; // Async load
+                    }
+                } else {
+                    v.src = url;
+                }
+
+                c.classList.remove('hidden');
+                v.play().catch(e => console.error(e));
+                
+                // Gestures Setup
+                app.setupGestures(c);
+            },
+
+            closeVideo: () => {
+                const v = document.getElementById('main-video');
+                v.pause();
+                v.src = "";
+                document.getElementById('video-player-container').classList.add('hidden');
+            },
+            
+            setupGestures: (element) => {
+                // Simple double tap logic placeholder
+                let lastTap = 0;
+                element.addEventListener('touchend', (e) => {
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTap;
+                    if (tapLength < 500 && tapLength > 0) {
+                        // Double Tap
+                        const video = document.getElementById('main-video');
+                        const width = window.innerWidth;
+                        const x = e.changedTouches[0].clientX;
+                        
+                        if(x > width / 2) {
+                            video.currentTime += 10; // Forward
+                            app.showToast(">> 10s");
+                        } else {
+                            video.currentTime -= 10; // Back
+                            app.showToast("<< 10s");
+                        }
+                        e.preventDefault();
+                    }
+                    lastTap = currentTime;
+                });
+            },
+
+            showToast: (msg) => {
+                // Simple toast implementation
+                const t = document.createElement('div');
+                t.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(0,0,0,0.7); color:white; padding:10px 20px; border-radius:20px; z-index:4000; font-weight:bold;";
+                t.innerText = msg;
+                document.body.appendChild(t);
+                setTimeout(() => t.remove(), 1000);
+            },
+            
+            toggleProfileMenu: () => {
+                if(confirm("¿Cerrar sesión o cambiar perfil?")) {
+                    app.state.user = null;
+                    localStorage.removeItem('niro_user');
+                    location.reload();
+                }
+            }
+        };
+
+        // Start
+        window.addEventListener('DOMContentLoaded', app.init);
+
+    </script>
+</body>
+</html>

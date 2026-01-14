@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NIRO | Premium Streaming</title>
+    
+    <!-- Fonts: Outfit (Modern/Premium) -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050505;
+            --glass-bg: rgba(20, 20, 20, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --primary-accent: #e50914; /* Netflix Red homage but deeper */
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --gold-gradient: linear-gradient(135deg, #FFD700 0%, #FDB931 100%);
+            --metal-gradient: linear-gradient(135deg, #e0e0e0 0%, #ffffff 50%, #a0a0a0 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            padding-bottom: 80px; /* Space for mobile nav */
+        }
+
+        /* --- GLASSMORPHISM HEADER --- */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 24px;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-icons i {
+            font-size: 22px;
+            margin-left: 20px;
+            color: var(--text-secondary);
+        }
+
+        /* --- HERO SECTION (80% Height) --- */
+        .hero {
+            position: relative;
+            height: 80vh;
+            width: 100%;
+            display: flex;
+            align-items: flex-end;
+            padding-bottom: 60px;
+            /* Placeholder for 'La Hermanastra Fea' - Gothic/Horror Vibe */
+            background: url('https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=2037&auto=format&fit=crop') center/cover no-repeat;
+            mask-image: linear-gradient(to bottom, black 70%, transparent 100%); /* Subtle fade at bottom if needed */
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, var(--bg-color) 10%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            padding: 0 24px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .hero-tags {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .match-score {
+            color: #46d369; /* Netflix match green */
+            font-weight: 700;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            /* Custom typography effect */
+            background: linear-gradient(180deg, #fff 0%, #ccc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 16px;
+            line-height: 1.5;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 24px;
+            max-width: 500px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        /* METALLIC PLAY BUTTON */
+        .btn-play {
+            background: var(--metal-gradient);
+            color: #000;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-play:active {
+            transform: scale(0.95);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* --- SYSTEM STATUS --- */
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #46d369; /* Green */
+            background: rgba(70, 211, 105, 0.1);
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(70, 211, 105, 0.2);
+            margin-right: 12px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #46d369;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #46d369;
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { opacity: 1; box-shadow: 0 0 0 0 rgba(70, 211, 105, 0.7); }
+            70% { opacity: 1; box-shadow: 0 0 0 6px rgba(70, 211, 105, 0); }
+            100% { opacity: 1; box-shadow: 0 0 0 0 rgba(70, 211, 105, 0); }
+        }
+
+        /* --- MOOD BASED UI --- */
+        .mood-section {
+            padding: 40px 24px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        .mood-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .mood-card {
+            height: 120px;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .mood-card:active {
+            transform: scale(0.98);
+        }
+
+        .mood-text {
+            position: relative;
+            z-index: 2;
+            font-weight: 700;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Mood Backgrounds */
+        .mood-chill {
+            background: linear-gradient(45deg, #0093E9 0%, #80D0C7 100%);
+        }
+        .mood-chill::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+            animation: flow 6s infinite linear;
+        }
+
+        .mood-intensity {
+            background: linear-gradient(45deg, #850000 0%, #cc0000 100%);
+        }
+        /* Grain effect */
+        .mood-intensity::before {
+            content: '';
+            position: absolute;
+            width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+
+        .mood-magic {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .mood-magic::after {
+            content: '';
+            position: absolute;
+            width: 10px; height: 10px;
+            background: white;
+            box-shadow: 0 0 10px white;
+            border-radius: 50%;
+            animation: particles 3s infinite;
+        }
+
+        .mood-drama {
+            background: #000;
+            border: 1px solid #333;
+        }
+        .mood-drama::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 50%; height: 100%;
+            background: #fff;
+            clip-path: polygon(0 0, 100% 0, 0 100%);
+            opacity: 0.1;
+        }
+
+        @keyframes flow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes particles {
+            0% { top: 100%; left: 20%; opacity: 1; }
+            100% { top: 0%; left: 40%; opacity: 0; }
+        }
+
+        /* --- CONTENT LISTS --- */
+        .content-list {
+            padding: 0 0 40px 24px;
+        }
+        
+        .list-header {
+            margin-bottom: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #eee;
+        }
+
+        .scroll-container {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding-right: 24px;
+            padding-bottom: 20px; /* Hide scrollbar spacing */
+            scrollbar-width: none; /* Firefox */
+        }
+        .scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .media-card {
+            flex: 0 0 140px;
+            height: 210px;
+            border-radius: 12px;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .media-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .media-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .media-card:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .media-card:hover .media-info {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .media-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .media-desc {
+            font-size: 11px;
+            color: #ccc;
+            line-height: 1.2;
+        }
+
+        /* --- BOTTOM NAVIGATION (Glassmorphism) --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            height: 65px;
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 10px;
+            gap: 4px;
+            cursor: pointer;
+            transition: color 0.3s;
+            width: 60px;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+        }
+
+        .nav-item.active {
+            color: #fff;
+        }
+        
+        .nav-item.active i {
+            background: linear-gradient(to bottom, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">NIRO</div>
+        <div class="nav-icons" style="display:flex; align-items:center;">
+            <div class="system-status">
+                <div class="status-dot"></div>
+                <span>ONLINE</span>
+            </div>
+            <i class="ri-search-line"></i>
+            <i class="ri-notification-3-line"></i>
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Niro" style="width: 28px; height: 28px; border-radius: 4px; vertical-align: middle; margin-left: 20px;">
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-tags">
+                <span class="match-score">90% MATCH</span>
+                <span>2025</span>
+                <span style="border: 1px solid #666; padding: 0 4px; border-radius: 2px;">16+</span>
+                <span>2h 15m</span>
+            </div>
+            <h1 class="hero-title">La Hermanastra<br>Fea</h1>
+            <p class="hero-desc">En esta reimaginación gótica del clásico, la "villana" toma el control con sus propias botas. Un thriller psicológico donde la magia tiene un precio sangriento.</p>
+            
+            <div class="hero-actions">
+                <button class="btn-play">
+                    <i class="ri-play-fill"></i> Reproducir
+                </button>
+                <button class="btn-secondary">
+                    <i class="ri-add-line"></i>
+                </button>
+                <button class="btn-secondary">
+                    <i class="ri-information-line"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mood Based UI -->
+    <section class="mood-section">
+        <h2 class="section-title">¿QUÉ VIBE TIENES HOY?</h2>
+        <div class="mood-grid">
+            <div class="mood-card mood-chill">
+                <span class="mood-text">Chill & Relax</span>
+            </div>
+            <div class="mood-card mood-intensity">
+                <span class="mood-text">Intensidad</span>
+            </div>
+            <div class="mood-card mood-magic">
+                <span class="mood-text">Magia & Sci-Fi</span>
+            </div>
+            <div class="mood-card mood-drama">
+                <span class="mood-text">Drama Puro</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular List -->
+    <section class="content-list">
+        <h2 class="list-header">Películas Populares</h2>
+        <div class="scroll-container">
+            <!-- Mock Items -->
+            <div class="media-card"><img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1925&auto=format&fit=crop"><div class="media-info"><div class="media-title">Dark Soul</div><div class="media-desc">Acción • 2024</div></div></div>
+            <div class="media-card"><img src="https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=2070&auto=format&fit=crop"><div class="media-info"><div class="media-title">Cyber City</div><div class="media-desc">Sci-Fi • 2025</div></div></div>
+            <div class="media-card"><img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=2059&auto=format&fit=crop"><div class="media-info"><div class="media-title">The Space</div><div class="media-desc">Drama • 2023</div></div></div>
+            <div class="media-card"><img src="https://images.unsplash.com/photo-1512149177596-f817c7ef5d4c?q=80&w=1000&auto=format&fit=crop"><div class="media-info"><div class="media-title">Neon Lights</div><div class="media-desc">Thriller • 2024</div></div></div>
+        </div>
+    </section>
+
+    <!-- Recent List -->
+    <section class="content-list">
+        <h2 class="list-header">Recientes</h2>
+        <div class="scroll-container">
+            <div class="media-card"><img src="https://images.unsplash.com/photo-1616530940355-351fabd9524b?q=80&w=1935&auto=format&fit=crop"><div class="media-info"><div class="media-title">Frozen Land</div><div class="media-desc">Aventura</div></div></div>
+            <div class="media-card"><img src="https://images.unsplash.com/photo-1595769816263-9b910be24d5f?q=80&w=1779&auto=format&fit=crop"><div class="media-info"><div class="media-title">The Witch</div><div class="media-desc">Terror</div></div></div>
+            <div class="media-card"><img src="https://images.unsplash.com/photo-1535016120720-40c6874c3b13?q=80&w=1964&auto=format&fit=crop"><div class="media-info"><div class="media-title">Empire</div><div class="media-desc">Acción</div></div></div>
+        </div>
+    </section>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+        <div class="nav-item active">
+            <i class="ri-home-5-fill"></i>
+            <span>Inicio</span>
+        </div>
+        <div class="nav-item">
+            <i class="ri-film-fill"></i>
+            <span>Pelis</span>
+        </div>
+        <div class="nav-item">
+            <i class="ri-tv-2-line"></i>
+            <span>Series</span>
+        </div>
+        <div class="nav-item">
+            <i class="ri-download-cloud-2-line"></i>
+            <span>Descargas</span>
+        </div>
+    </nav>
+
+</body>
+</html>

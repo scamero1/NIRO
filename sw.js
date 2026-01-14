@@ -1,84 +1,52 @@
-const CACHE_NAME = 'niro-cache-v3'; // Bumped version
-const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;700;800&display=swap',
-  'https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css'
+const CACHE_NAME = 'niro-cache-v13-FIX-CRITICAL-FORCE-NETWORK';
+const urlsToCache = [
+  '/manifest.json',
+  '/Niro_original.png',
+  'https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;700;800&display=swap'
 ];
 
-self.addEventListener('install', (event) => {
-  // Do NOT skipWaiting automatically. Wait for user action.
+self.addEventListener('install', event => {
+  self.skipWaiting(); // Forzar activación inmediata
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(ASSETS_TO_CACHE))
+      .then(cache => cache.addAll(urlsToCache))
   );
 });
 
-self.addEventListener('activate', (event) => {
-  // Claim clients immediately so the new SW controls the page
-  event.waitUntil(clients.claim());
-  
-  // Clean up old caches
+self.addEventListener('activate', event => {
   event.waitUntil(
-      caches.keys().then((cacheNames) => {
-          return Promise.all(
-              cacheNames.map((cacheName) => {
-                  if (cacheName !== CACHE_NAME) {
-                      return caches.delete(cacheName);
-                  }
-              })
-          );
-      })
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => self.clients.claim()) // Tomar control de inmediato
   );
 });
 
-// Handle messages from client
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
-
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-
-  // API calls - Network first
-  if (event.request.url.includes('/db') || event.request.url.includes('/upload')) {
-    event.respondWith(
-      fetch(event.request)
-        .catch(() => new Response(JSON.stringify({ error: 'Network error' }), {
-            headers: { 'Content-Type': 'application/json' }
-        }))
-    );
-    return;
-  }
-
-  // HTML / Navigation - Network First to ensure updates are seen
-  if (event.request.mode === 'navigate' || event.request.headers.get('accept').includes('text/html')) {
+self.addEventListener('fetch', event => {
+  // ESTRATEGIA: NETWORK FIRST para HTML y navegación
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-            const clonedResponse = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clonedResponse));
-            return response;
+          return response;
         })
         .catch(() => {
-          return caches.match('/index.html') || caches.match('/');
+          return caches.match(event.request);
         })
     );
     return;
   }
 
-  // Static Assets - Cache First
+  // ESTRATEGIA: CACHE FIRST para recursos estáticos
   event.respondWith(
     caches.match(event.request)
-      .then((response) => {
-        return response || fetch(event.request).then(networkResponse => {
-            return caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, networkResponse.clone());
-                return networkResponse;
-            });
-        });
-      })
+      .then(response => response || fetch(event.request))
   );
 });

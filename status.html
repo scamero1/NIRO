@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Estado del Sistema - NIRO</title>
+    <meta name="theme-color" content="#000000">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #000000;
+            --color-card: #111111;
+            --color-text: #ffffff;
+            --color-success: #46d369;
+            --color-warning: #f5a623;
+            --color-error: #e50914;
+            --color-border: #333333;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 40px;
+            text-align: center;
+            padding-top: 20px;
+        }
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 20%, #8B5CF6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        .status-card {
+            background: var(--color-card);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+        .overall-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .status-icon-large {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(70, 211, 105, 0.1);
+            color: var(--color-success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 0 20px rgba(70, 211, 105, 0.2);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(70, 211, 105, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(70, 211, 105, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(70, 211, 105, 0); }
+        }
+        .status-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .status-desc {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .service-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .service-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+        }
+        .service-name {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .service-status {
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: rgba(70, 211, 105, 0.1);
+            color: var(--color-success);
+        }
+        .latency-chart {
+            margin-top: 30px;
+        }
+        .bar-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 60px;
+            margin-top: 10px;
+        }
+        .bar {
+            flex: 1;
+            background: #333;
+            border-radius: 2px;
+            transition: height 0.5s;
+        }
+        .bar.active {
+            background: var(--color-success);
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            color: #000000;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            text-decoration: none;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        .back-btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">NIRO STATUS</div>
+        <p style="color:#666;">Monitoreo en tiempo real de la plataforma</p>
+    </div>
+
+    <div class="status-card">
+        <div class="overall-status">
+            <div class="status-icon-large">
+                <i class="ri-check-line"></i>
+            </div>
+            <div>
+                <div class="status-title">Todos los sistemas operativos</div>
+                <div class="status-desc">La plataforma funciona correctamente.</div>
+            </div>
+        </div>
+
+        <div class="service-list">
+            <div class="service-item">
+                <div class="service-name"><i class="ri-server-line"></i> Servidor Web (Nginx)</div>
+                <div class="service-status">Operativo</div>
+            </div>
+            <div class="service-item">
+                <div class="service-name"><i class="ri-database-2-line"></i> Base de Datos</div>
+                <div class="service-status">Operativo</div>
+            </div>
+            <div class="service-item">
+                <div class="service-name"><i class="ri-global-line"></i> CDN & Streaming</div>
+                <div class="service-status">Operativo</div>
+            </div>
+            <div class="service-item">
+                <div class="service-name"><i class="ri-shield-check-line"></i> Autenticación</div>
+                <div class="service-status">Operativo</div>
+            </div>
+        </div>
+
+        <div class="latency-chart">
+            <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#666; margin-bottom:5px;">
+                <span>Latencia del Sistema</span>
+                <span id="ping-val">24ms</span>
+            </div>
+            <div class="bar-container" id="bars">
+                <!-- Bars generated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <div class="status-card">
+        <div style="font-weight:600; margin-bottom:10px;">Incidencias Recientes</div>
+        <div style="font-size:0.9rem; color:#888;">
+            <p>No hay incidencias reportadas en las últimas 24 horas.</p>
+        </div>
+    </div>
+
+    <a href="/" class="back-btn">
+        <i class="ri-arrow-left-line"></i> Volver a NIRO
+    </a>
+
+    <script>
+        // Simulate Latency Bars
+        const barsContainer = document.getElementById('bars');
+        for(let i=0; i<30; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'bar active';
+            bar.style.height = Math.floor(Math.random() * 60 + 20) + '%';
+            bar.style.opacity = Math.random() * 0.5 + 0.5;
+            barsContainer.appendChild(bar);
+        }
+
+        setInterval(() => {
+            const bars = document.querySelectorAll('.bar');
+            bars.forEach(b => {
+                b.style.height = Math.floor(Math.random() * 60 + 20) + '%';
+            });
+            document.getElementById('ping-val').innerText = Math.floor(Math.random() * 20 + 15) + 'ms';
+        }, 2000);
+    </script>
+</body>
+</html>

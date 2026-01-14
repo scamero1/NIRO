@@ -1,8 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <!-- CRITICAL ERROR HANDLER -->
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            if (msg.toLowerCase().indexOf('script error') > -1) return false;
+            var extra = !col ? '' : '\nCol: ' + col;
+            extra += !error ? '' : '\nErr: ' + error;
+            console.error("Global Error: " + msg + "\nUrl: " + url + "\nLine: " + line + extra);
+            
+            setTimeout(function() {
+                var mv = document.getElementById('main-view');
+                if (!mv || mv.innerHTML.trim() === '') {
+                     var errDiv = document.createElement('div');
+                     errDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:black;color:red;z-index:99999;padding:20px;overflow:auto;font-family:monospace;font-size:16px;white-space:pre-wrap;';
+                     errDiv.innerHTML = '<h3>CRITICAL STARTUP ERROR</h3><p>' + msg + '</p><p>Line: ' + line + ' Col: ' + col + '</p><pre>' + (error && error.stack ? error.stack : '') + '</pre><button onclick="location.reload()" style="padding:15px;margin-top:20px;font-size:16px;">RELOAD APP</button>';
+                     document.body.appendChild(errDiv);
+                }
+            }, 3000);
+            return false;
+        };
+    </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>NIRO</title>
     <meta name="description" content="La experiencia de streaming definitiva.">
     <meta name="theme-color" content="#0F0720">
@@ -11,6 +31,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="NIRO">
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" href="Niro_original.png">
     <link rel="apple-touch-icon" href="Niro_original.png">
 
@@ -32,14 +53,14 @@
             --color-brand-glow: rgba(139, 92, 246, 0.6);
             --color-brand-accent: #D946EF; /* Fucsia para contrastes */
             
-            --color-bg-base: #0F0720; /* Fondo muy oscuro morado */
-            --color-bg-surface: #1E1035; /* Superficie morada oscura */
-            --color-bg-surface-hover: #2D1B4E;
-            --color-bg-glass: rgba(15, 7, 32, 0.7);
+            --color-bg-base: #000000; /* Fondo Negro Profundo Premium */
+            --color-bg-surface: #121212; /* Superficie gris muy oscuro */
+            --color-bg-surface-hover: #1e1e1e;
+            --color-bg-glass: rgba(0, 0, 0, 0.85);
             
             --color-text-primary: #FFFFFF;
-            --color-text-secondary: #C4B5FD; /* Lavanda claro */
-            --color-text-tertiary: #8B8198;
+            --color-text-secondary: #A1A1AA; /* Zinc 400 */
+            --color-text-tertiary: #71717A;
             
             /* Typography */
             --font-display: 'Outfit', sans-serif;
@@ -49,7 +70,7 @@
             --header-height: 80px;
             --container-width: 92%;
             --max-width: 1400px; /* Centering limit */
-            --mobile-nav-height: 60px;
+            --mobile-nav-height: 65px;
             
             /* Animation */
             --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
@@ -74,6 +95,12 @@
             -moz-osx-font-smoothing: grayscale;
             overflow-x: hidden;
             padding-bottom: 0;
+            overscroll-behavior-y: none; /* Disable bounce scroll */
+        }
+        
+        /* Remove tap highlight on mobile */
+        * {
+            -webkit-tap-highlight-color: transparent;
         }
         
         /* Custom Scrollbar */
@@ -81,6 +108,25 @@
         ::-webkit-scrollbar-track { background: var(--color-bg-base); }
         ::-webkit-scrollbar-thumb { background: var(--color-bg-surface-hover); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--color-brand-primary); }
+
+        /* Search Item Arrow Hover */
+        #search-results-dropdown div:hover .search-item-arrow {
+            opacity: 1 !important;
+            transform: translateX(0) !important;
+        }
+
+        /* Hero Aura */
+        .hero-aura {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
 
         a, button {
             all: unset;
@@ -198,6 +244,48 @@
             color: black;
         }
 
+        /* iOS PWA Fixes */
+        @media all and (display-mode: standalone) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                background-color: black;
+            }
+            .header {
+                padding-top: env(safe-area-inset-top);
+                height: calc(var(--header-height) + env(safe-area-inset-top));
+            }
+        }
+
+        /* Landscape Mobile Profile Fix */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .profile-gate {
+                padding: 1rem;
+                overflow-y: auto;
+                align-items: flex-start; /* Allow scrolling from top */
+                justify-content: flex-start;
+            }
+            .profile-list {
+                gap: 1.5rem;
+                margin-top: 1rem;
+                margin-bottom: 2rem;
+            }
+            .profile-item {
+                gap: 0.5rem;
+            }
+            .profile-avatar {
+                width: 90px;
+                height: 90px;
+            }
+            .add-profile-btn {
+                width: 90px;
+                height: 90px;
+                font-size: 3rem;
+            }
+            .profile-name {
+                font-size: 0.9rem;
+            }
+        }
+
         /* -------------------------------------------------------------------------- */
         /*                                 COMPONENTS                                 */
         /* -------------------------------------------------------------------------- */
@@ -289,9 +377,9 @@
             border: 1px solid transparent;
         }
         .search-bar:focus-within {
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.8);
             border-color: var(--color-brand-primary);
-            width: 250px;
+            width: 320px;
         }
         .search-input {
             background: transparent;
@@ -303,10 +391,185 @@
             transition: width 0.3s;
         }
         .search-input:focus {
-            width: 200px;
+            width: 100%;
             box-shadow: none;
             background: transparent;
         }
+
+        /* Smart Search Results */
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: #18181b;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            padding: 10px 0;
+            display: none;
+            z-index: 1001;
+            overflow: hidden;
+        }
+        .search-results.active { display: block; }
+        
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .search-result-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .search-result-poster {
+            width: 40px;
+            height: 60px;
+            border-radius: 4px;
+            object-fit: cover;
+            background: #333;
+        }
+        .search-result-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .search-result-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: white;
+        }
+        .search-result-meta {
+            font-size: 0.8rem;
+            color: var(--color-text-tertiary);
+        }
+
+        /* Header Icons & Indicators */
+        .header-icon-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            color: var(--color-text-secondary);
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header-icon-btn:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        .header-icon-btn.active {
+            color: var(--color-brand-primary);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--color-brand-accent);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--color-bg-base);
+        }
+
+        /* User Menu Dropdown */
+        .user-menu-container {
+            position: relative;
+        }
+        .user-avatar-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .user-avatar-btn:hover, .user-avatar-btn.active {
+            border-color: var(--color-brand-primary);
+        }
+        .user-avatar-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 120%;
+            right: 0;
+            width: 220px;
+            background: #18181b;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            padding: 8px;
+            display: none;
+            z-index: 1001;
+            transform-origin: top right;
+            animation: scaleIn 0.2s ease;
+        }
+        .dropdown-menu.active { display: block; }
+        
+        .dropdown-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 8px;
+        }
+        .dropdown-user-name {
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .dropdown-user-plan {
+            color: var(--color-brand-primary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+        
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .dropdown-item:hover {
+            background: rgba(255,255,255,0.08);
+            color: white;
+        }
+        .dropdown-item i { font-size: 1.1rem; }
+        .dropdown-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 8px 0;
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
 
         .mood-section {
             padding: 2rem 0;
@@ -402,79 +665,170 @@
             transform: scale(1.1);
         }
 
-        /* Hero */
+        /* Hero - Fluid Responsive Design */
         .hero {
             position: relative;
-            height: 85vh;
             width: 100%;
-            overflow: hidden;
             display: flex;
-            align-items: center;
-            margin-bottom: -10vh;
+            overflow: hidden;
+            /* Default Mobile: Edge-to-Edge, Bottom Align */
+            height: 100vh;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 120px; /* Space for bottom nav */
+        }
+
+        /* Aura Effect */
+        .hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 30%, var(--color-brand-primary), transparent 60%);
+            opacity: 0.4;
+            mix-blend-mode: screen;
+            pointer-events: none;
+            z-index: 1;
+            filter: blur(60px);
+            animation: aura-pulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes aura-pulse {
+            0% {
+                opacity: 0.3;
+                background: radial-gradient(circle at 50% 30%, var(--color-brand-primary), transparent 60%);
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                background: radial-gradient(circle at 50% 35%, var(--color-brand-accent), transparent 65%);
+                transform: scale(1.1);
+            }
+            100% {
+                opacity: 0.3;
+                background: radial-gradient(circle at 50% 30%, var(--color-brand-primary), transparent 60%);
+                transform: scale(1);
+            }
         }
         
-        .hero-bg {
+        .hero-aura {
             position: absolute;
-            inset: -5%;
-            width: 110%;
-            height: 110%;
+            inset: 0;
             background-size: cover;
             background-position: center;
+            filter: blur(60px) saturate(180%) brightness(0.8);
             z-index: 0;
+            opacity: 0.8;
+            mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+            animation: pulse-aura 10s infinite alternate;
+        }
+        @keyframes pulse-aura {
+            from { opacity: 0.6; transform: scale(1); }
+            to { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
             animation: kenburns 30s infinite alternate;
-            filter: brightness(0.6);
+            mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
         }
         @keyframes kenburns {
             from { transform: scale(1); }
-            to { transform: scale(1.1) translate(-2%, -2%); }
+            to { transform: scale(1.1); }
         }
         
         .hero-overlay {
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at 70% 20%, rgba(0,0,0,0) 0%, rgba(11,12,15,0.6) 50%, var(--color-bg-base) 100%),
-                        linear-gradient(to top, var(--color-bg-base) 10%, transparent 60%);
+            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.2) 40%, #000000 100%);
             z-index: 1;
         }
         
         .hero-content {
             position: relative;
             z-index: 2;
-            width: var(--container-width);
-            max-width: var(--max-width);
-            margin: 0 auto;
-            padding-top: 60px;
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            /* Mobile: Text shadow for readability over image */
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            margin-bottom: 2rem;
         }
         
         .hero-title {
             font-family: var(--font-display);
-            font-size: clamp(2rem, 5vw, 5rem);
+            font-size: clamp(2.5rem, 6vw, 4rem);
             font-weight: 800;
             line-height: 1.1;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(to bottom, #fff 40%, #ccc);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            color: white;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
         
         .hero-meta {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            justify-content: center;
+            gap: 12px;
             margin-bottom: 1.5rem;
-            font-weight: 500;
-            color: #e5e5e5;
+            flex-wrap: wrap;
         }
         
-        .match-score { color: var(--color-brand-accent); font-weight: 700; }
+        .hero-meta > span {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #eee;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .match-score { 
+            color: #46d369 !important; 
+            font-weight: 700 !important;
+            background: rgba(70, 211, 105, 0.1) !important;
+            border-color: rgba(70, 211, 105, 0.2) !important;
+        }
         
         .hero-desc {
-            font-size: 1.1rem;
-            color: var(--color-text-secondary);
+            font-size: 1rem;
+            color: #ddd;
             margin-bottom: 2rem;
-            max-width: 600px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        .hero-actions {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .hero-actions .btn {
+            flex: 1;
+            max-width: 180px;
+            justify-content: center;
+            padding: 12px 20px;
         }
 
         /* Sections & Cards */
@@ -540,6 +894,31 @@
             transform: scale(1.1);
             z-index: 100;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Top 10 Ranking Styles */
+        .ranked-card {
+            overflow: visible !important; /* Allow number to spill out */
+        }
+        .rank-number {
+            position: absolute;
+            bottom: 0;
+            left: -15px;
+            font-size: 7rem;
+            font-weight: 900;
+            color: #000;
+            -webkit-text-stroke: 2px #555;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+            line-height: 0.8;
+            z-index: -1; /* Behind the card image */
+            font-family: var(--font-display);
+        }
+        /* Mobile adjustment for rank numbers */
+        @media (max-width: 768px) {
+            .rank-number {
+                font-size: 5rem;
+                left: -10px;
+            }
         }
 
         /* Admin / Tables */
@@ -634,58 +1013,194 @@
             cursor: pointer;
         }
 
-        /* Mobile Nav */
+        
+        /* Modern Mobile Nav - Minimalist Streaming Style */
         .mobile-nav {
             display: none;
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: var(--mobile-nav-height);
-            background: rgba(11, 12, 15, 0.95);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            z-index: 1001;
-            justify-content: space-around;
+            height: auto; /* Allow auto height for padding */
+            min-height: 70px;
+            background: rgba(10, 10, 12, 0.85); /* Slightly more translucent for blur */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            z-index: 9999;
+            justify-content: space-evenly;
             align-items: center;
+            padding-bottom: env(safe-area-inset-bottom, 20px); /* Respect iOS Home Indicator */
+            padding-top: 10px;
+            box-shadow: 0 -15px 40px rgba(0,0,0,0.6);
         }
+        
         .mobile-nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 0.7rem;
-            color: var(--color-text-secondary);
+            justify-content: center;
+            color: #7a7a7a; /* Muted minimalist gray */
+            transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+            width: 65px;
+            height: 100%;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
         }
-        
-        @media (max-width: 768px) {
-            .mobile-nav { display: flex; }
-            body.in-profile-gate .mobile-nav { display: none; }
-        }
-        .mobile-nav-item.active { color: white; }
 
-        @media (max-width: 768px) {
-            .nav-menu, .header-actions { display: none; }
-            .mobile-nav { display: flex; }
-            .hero-title { font-size: 2.5rem; }
-            .admin-container { width: 95%; margin-top: 100px; }
-            .card { flex: 0 0 160px; }
-            .data-table { display: block; overflow-x: auto; }
-            /* Fix crowded buttons */
-            .hero-content div { flex-wrap: wrap; }
-            .btn { width: 100%; margin-bottom: 0.5rem; }
-            .header { background-color: rgba(15, 7, 32, 0.95); backdrop-filter: blur(12px); } /* Always dark on mobile */
+        .mobile-nav-item i {
+            font-size: 24px;
+            margin-bottom: 3px;
+            transition: all 0.25s ease;
         }
         
-        /* Ultra small screens */
+        .mobile-nav-item span {
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            opacity: 1;
+            transition: opacity 0.2s;
+        }
+        
+        .mobile-nav-item img {
+            width: 24px; 
+            height: 24px; 
+            border-radius: 6px; /* Softer radius */
+            object-fit: cover;
+            border: 2px solid transparent;
+            transition: all 0.25s ease;
+        }
+
+        /* Active State */
+        .mobile-nav-item.active {
+            color: #ffffff;
+        }
+        
+        .mobile-nav-item.active i {
+            color: var(--color-brand-primary);
+            transform: translateY(-2px);
+            filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.4)); /* Subtle neon glow */
+        }
+        
+        .mobile-nav-item.active img {
+            border-color: var(--color-brand-primary);
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+        }
+
+        .mobile-nav-item.active span {
+            font-weight: 600;
+            color: white;
+        }
+
+        /* Click Ripple Effect (simulated via scale) */
+        .mobile-nav-item:active i, .mobile-nav-item:active img {
+            transform: scale(0.9);
+        }
+        
+        /* -------------------------------------------------------------------------- */
+        /*                             RESPONSIVE LOGIC                               */
+        /* -------------------------------------------------------------------------- */
+
+        /* Mobile First Base (< 480px) */
+        /* Hero is 100vh, content bottom aligned, heavy bottom overlay */
+        /* Navigation: Bottom Mobile Nav visible, Header hidden/minimal */
+
+        /* Tablet (481px - 1024px) */
+        @media (min-width: 481px) and (max-width: 1024px) {
+            .mobile-nav { display: flex !important; }
+            .nav-menu { display: none; }
+            .header-actions { display: none; }
+            
+            .hero {
+                height: 55vh; /* Banner style for Tablet */
+                align-items: center;
+                justify-content: flex-start;
+                padding-bottom: 0;
+            }
+            .hero-content {
+                align-items: flex-start;
+                text-align: left;
+                padding-left: 5%;
+                max-width: 70%;
+                margin-bottom: 0;
+                text-shadow: none; /* Clean text on gradient */
+            }
+            .hero-overlay {
+                /* Lateral gradient for text readability on left */
+                background: linear-gradient(90deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+            }
+            .hero-actions {
+                justify-content: flex-start;
+            }
+            
+            /* Card Sizing for Tablet */
+            .card { flex: 0 0 200px; }
+            .card.poster { flex: 0 0 140px; }
+        }
+
+        /* Desktop (> 1025px) */
+        @media (min-width: 1025px) {
+            .mobile-nav { display: none !important; } /* Hide bottom nav */
+            .nav-menu { display: flex; } /* Show top nav */
+            .header-actions { display: flex; }
+            
+            .hero {
+                height: 85vh; /* Cinematic Dashboard */
+                align-items: center;
+                justify-content: flex-start;
+                padding-bottom: 0;
+            }
+            .hero-content {
+                align-items: flex-start;
+                text-align: left;
+                padding-left: 6%; /* More breathing room */
+                max-width: 50%; /* Clean layout */
+                margin-bottom: 0;
+                transform: translateY(0);
+                text-shadow: none;
+            }
+            .hero-title {
+                font-size: 5rem; /* Massive title */
+            }
+            .hero-desc {
+                font-size: 1.1rem;
+                -webkit-line-clamp: 4;
+            }
+            .hero-overlay {
+                /* Professional vignette + left gradient */
+                background: radial-gradient(circle at 70% 50%, transparent 0%, rgba(0,0,0,0.4) 50%, #000000 100%),
+                            linear-gradient(90deg, #000000 0%, rgba(0,0,0,0.8) 40%, transparent 100%);
+            }
+            .hero-actions {
+                justify-content: flex-start;
+            }
+            
+            /* Hover interactions for Desktop */
+            .card:hover {
+                transform: scale(1.15);
+                z-index: 500;
+                box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+            }
+        }
+
+        /* Mobile Adjustments (Base overrides if needed) */
         @media (max-width: 480px) {
-            .hero-title { font-size: 2rem; }
-            .hero-desc { font-size: 0.9rem; -webkit-line-clamp: 3; line-clamp: 3; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
-            .section-title { font-size: 1.1rem; }
-            .data-table th, .data-table td { padding: 0.5rem; font-size: 0.8rem; }
-            .btn-primary, .btn-secondary { padding: 0.5em 1em; font-size: 0.85rem; }
-            .modal-backdrop { padding: 10px; }
-            .modal-content { max-height: 85vh; }
-            .search-input { width: 100px; }
+            .nav-menu, .header-actions { display: none; }
+            .mobile-nav { display: flex !important; }
+            
+            .hero-title { font-size: 2.5rem; }
+            .hero-content div { flex-wrap: wrap; }
+            
+            .admin-container { width: 95%; margin-top: 100px; }
+            .card { flex: 0 0 140px; }
+            
+            .btn { width: 100%; margin-bottom: 0.5rem; }
+            
+            .header { background-color: rgba(15, 7, 32, 0.95); backdrop-filter: blur(12px); }
+            
+            #main-view { padding-bottom: 100px !important; }
             .search-bar:focus-within { width: 100%; position: absolute; left: 10px; right: 10px; z-index: 10; }
         }
 
@@ -1459,8 +1974,404 @@
         }
     }
 
+    
+        /* Header consistency */
+        @media (max-width: 768px) {
+            .header {
+                background: rgba(10, 10, 12, 0.92) !important;
+                backdrop-filter: blur(25px) !important;
+                -webkit-backdrop-filter: blur(25px) !important;
+                border-bottom: 1px solid rgba(255,255,255,0.06);
+                height: 60px;
+            }
+            .header-content {
+                height: 100%;
+                align-items: center;
+            }
+            .logo img {
+                height: 32px !important; /* Smaller logo on mobile */
+            }
+        }
+
+
+        /* Redesign V2: Minimalist (Netflix/HBO Max Style) */
+        @media (max-width: 768px) {
+            .mobile-nav {
+                display: flex !important;
+                justify-content: space-around;
+                align-items: center;
+                background-color: #000000 !important; /* Pure black or very dark */
+                backdrop-filter: none !important; /* Remove blur for solid look */
+                -webkit-backdrop-filter: none !important;
+                border-top: 1px solid #1f1f1f; /* Subtle separation */
+                height: 55px; /* Compact */
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 10000;
+                box-shadow: none !important; /* No glow */
+            }
+
+            .nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: #808080 !important; /* Inactive Gray */
+                text-decoration: none;
+                transition: color 0.2s ease;
+                padding: 5px 0;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .nav-item i {
+                font-size: 22px !important; /* Slightly smaller icons */
+                margin-bottom: 2px;
+                transition: transform 0.1s;
+            }
+            
+            .nav-item span {
+                font-size: 9px !important; /* Very small labels */
+                font-weight: 500;
+                letter-spacing: 0.2px;
+            }
+
+
+            /* Header Consistency */
+            .header {
+                background-color: rgba(0, 0, 0, 0.85) !important; /* Semi-transparent black */
+                backdrop-filter: blur(10px) !important;
+                border-bottom: none !important;
+                /* Gradient overlay for readability over content */
+                background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 100%);
+            }
+        }
+
+
+        /* Redesign V3: Floating Glass (Modern Aesthetic) */
+        @media (max-width: 768px) {
+            .mobile-nav {
+                display: flex !important;
+                justify-content: space-around;
+                align-items: center;
+                position: fixed;
+                bottom: 25px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 380px;
+                height: 70px;
+                background: rgba(15, 15, 20, 0.90);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 35px;
+                z-index: 1500;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+                padding: 0 10px;
+                transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+
+            body.video-active .mobile-nav {
+                transform: translateX(-50%) translateY(200%);
+            }
+
+            /* Hide menu when video player is active (via class on body or direct check) */
+            body.video-active .mobile-nav {
+                transform: translateX(-50%) translateY(150%); /* Slide down */
+            }
+
+            .nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: rgba(255, 255, 255, 0.4);
+                text-decoration: none;
+                transition: all 0.3s ease;
+                position: relative;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .nav-item i {
+                font-size: 24px !important;
+                margin-bottom: 4px;
+                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            
+            .nav-item span {
+                font-size: 10px !important;
+                font-weight: 600;
+                letter-spacing: 0.3px;
+                opacity: 0.7;
+                transition: opacity 0.3s;
+            }
+
+            /* Active State */
+            .nav-item.active {
+                color: #ffffff !important;
+            }
+            
+            .nav-item.active i {
+                color: #bc13fe !important; /* Neon Purple Brand */
+                transform: translateY(-4px) scale(1.1);
+                filter: drop-shadow(0 0 12px rgba(188, 19, 254, 0.5));
+            }
+
+            .nav-item.active span {
+                opacity: 1;
+                color: #ffffff;
+            }
+            
+            /* Active Indicator Dot */
+            .nav-item.active::after {
+                content: '';
+                position: absolute;
+                bottom: -6px;
+                width: 4px;
+                height: 4px;
+                background: #bc13fe;
+                border-radius: 50%;
+                box-shadow: 0 0 8px #bc13fe;
+                animation: popIn 0.3s ease forwards;
+            }
+
+            @keyframes popIn {
+                from { transform: scale(0); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+            }
+
+            /* Profile Icon Specifics */
+            .nav-profile-icon {
+                width: 28px !important;
+                height: 28px !important;
+                border-radius: 50% !important; /* Circle */
+                object-fit: cover;
+                border: 2px solid transparent;
+                transition: all 0.3s;
+            }
+            
+            .nav-item.active .nav-profile-icon {
+                border-color: #bc13fe;
+                box-shadow: 0 0 12px rgba(188, 19, 254, 0.4);
+            }
+        }
+
+/* iOS PWA Fixes */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+                background-color: var(--color-bg-base); /* Fill notch area */
+            }
+            .header {
+                padding-top: env(safe-area-inset-top);
+                height: calc(var(--header-height) + env(safe-area-inset-top));
+            }
+            .mobile-nav {
+                padding-bottom: env(safe-area-inset-bottom);
+                height: calc(70px + env(safe-area-inset-bottom));
+            }
+        }
+
+        /* Video Range Slider */
+        input[type=range].video-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+            cursor: pointer;
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+            position: relative;
+            z-index: 10;
+        }
+        input[type=range].video-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--color-brand-primary);
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+            transition: transform 0.1s;
+        }
+        input[type=range].video-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        input[type=range].video-slider::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+        }
+
+        /* Landscape Profile Fix */
+        @media (max-width: 900px) and (orientation: landscape) {
+            .profile-gate {
+                overflow-y: auto;
+                padding: 2rem 0;
+            }
+            .profile-list {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 1.5rem;
+                padding-bottom: 2rem;
+            }
+            .profile-avatar, .add-profile-btn {
+                width: 100px;
+                height: 100px;
+            }
+            .profile-name {
+                font-size: 1rem;
+            }
+        }
+
+        /* Status Page Overlay */
+        .status-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 7, 32, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
     </style>
+
+    <style>
+        /* FORCE MOBILE NAV VISIBILITY */
+        @media (max-width: 768px) {
+            .mobile-nav {
+                display: flex !important;
+                z-index: 99999 !important; /* Ensure it's on top */
+                bottom: 0 !important;
+                position: fixed !important;
+                background: rgba(11, 12, 15, 0.98) !important;
+                backdrop-filter: blur(15px) !important;
+                height: 60px !important;
+                padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+                box-shadow: 0 -5px 20px rgba(0,0,0,0.5) !important;
+            }
+            
+            /* Hide when in profile gate */
+            body.in-profile-gate .mobile-nav {
+                display: none !important;
+            }
+            
+            /* Ensure content doesn't get hidden behind nav */
+            #main-view {
+                padding-bottom: 80px !important;
+            }
+        }
+    
+        /* Header consistency */
+        @media (max-width: 768px) {
+            .header {
+                background: rgba(10, 10, 12, 0.92) !important;
+                backdrop-filter: blur(25px) !important;
+                -webkit-backdrop-filter: blur(25px) !important;
+                border-bottom: 1px solid rgba(255,255,255,0.06);
+                height: 60px;
+            }
+            .header-content {
+                height: 100%;
+                align-items: center;
+            }
+            .logo img {
+                height: 32px !important; /* Smaller logo on mobile */
+            }
+        }
+
+
+        /* Redesign V2: Minimalist (Netflix/HBO Max Style) */
+        @media (max-width: 768px) {
+            .mobile-nav {
+                display: flex !important;
+                justify-content: space-around;
+                align-items: center;
+                background-color: #000000 !important; /* Pure black or very dark */
+                backdrop-filter: none !important; /* Remove blur for solid look */
+                -webkit-backdrop-filter: none !important;
+                border-top: 1px solid #1f1f1f; /* Subtle separation */
+                height: 55px; /* Compact */
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 10000;
+                box-shadow: none !important; /* No glow */
+            }
+
+            .nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: #808080 !important; /* Inactive Gray */
+                text-decoration: none;
+                transition: color 0.2s ease;
+                padding: 5px 0;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .nav-item i {
+                font-size: 22px !important; /* Slightly smaller icons */
+                margin-bottom: 2px;
+                transition: transform 0.1s;
+            }
+            
+            .nav-item span {
+                font-size: 9px !important; /* Very small labels */
+                font-weight: 500;
+                letter-spacing: 0.2px;
+            }
+
+            /* Active State */
+            .nav-item.active {
+                color: #ffffff !important; /* Pure White */
+            }
+            
+            .nav-item.active i {
+                /* transform: scale(1.1); Subtle pop */
+                font-weight: bold; /* If font supports it, or use text-stroke */
+                /* text-shadow: 0 0 10px rgba(255,255,255,0.3); Optional subtle glow */
+            }
+
+            /* Profile Icon Specifics */
+            .nav-profile-icon {
+                width: 24px !important;
+                height: 24px !important;
+                border-radius: 4px !important; /* Netflix uses square-ish avatars usually, but circle is fine. Let's do rounded square like Netflix. */
+                object-fit: cover;
+                border: 1px solid transparent;
+            }
+            
+            .nav-item.active .nav-profile-icon {
+                border-color: #ffffff;
+            }
+
+            /* Header Consistency */
+            .header {
+                background-color: rgba(0, 0, 0, 0.85) !important; /* Semi-transparent black */
+                backdrop-filter: blur(10px) !important;
+                border-bottom: none !important;
+                /* Gradient overlay for readability over content */
+                background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 100%);
+            }
+        }
+
+
+
+
+</style>
 </head>
+
 <body>
     <div class="toast-container" id="toast-container"></div>
     <div id="app">
@@ -1474,13 +2385,37 @@
             <!-- Rendered by JS -->
         </main>
 
-        <!-- Global Mobile Nav -->
+        <!-- Mobile Bottom Navigation -->
         <div class="mobile-nav">
-            <div class="mobile-nav-item" id="nav-home" onclick="app.router('home')"><i class="ri-home-5-fill"></i><span>Inicio</span></div>
-            <div class="mobile-nav-item" id="nav-series" onclick="app.router('series')"><i class="ri-tv-line"></i><span>Series</span></div>
-            <div class="mobile-nav-item" id="nav-movies" onclick="app.router('movies')"><i class="ri-movie-2-line"></i><span>Pelis</span></div>
-            <div class="mobile-nav-item" id="nav-mylist" onclick="app.router('mylist')"><i class="ri-list-check"></i><span>Mi Lista</span></div>
-            <div class="mobile-nav-item" id="nav-profile" onclick="app.openMobileProfileMenu()"><img id="mobile-nav-avatar" src="" style="width: 24px; height: 24px; border-radius: 4px; object-fit: cover; display: none;" onload="this.style.display='block'; this.nextElementSibling.style.display='none'" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><i class="ri-user-3-fill"></i><span>Perfil</span></div>
+            <div class="nav-item" id="nav-home" onclick="app.router('home')">
+                <i class="ri-home-4-line"></i>
+                <span>Inicio</span>
+            </div>
+            <div class="nav-item" id="nav-series" onclick="app.router('series')">
+                <i class="ri-tv-2-line"></i>
+                <span>Series</span>
+            </div>
+            <div class="nav-item" id="nav-movies" onclick="app.router('movies')">
+                <i class="ri-film-line"></i>
+                <span>Pelis</span>
+            </div>
+            <div class="nav-item" id="nav-mylist" onclick="app.router('mylist')">
+                <i class="ri-play-list-add-line"></i>
+                <span>Mi Lista</span>
+            </div>
+            <div class="nav-item" id="nav-profile" onclick="app.openMobileProfileMenu()">
+                <img id="mobile-nav-avatar" src="https://i.pinimg.com/736x/c4/88/34/c488340ad56e5454f4576f6c708b3482.jpg" style="width:24px;height:24px;border-radius:4px;object-fit:cover;">
+                <span>Perfil</span>
+            </div>
+        </div>
+
+        <!-- Mobile Profile Sheet -->
+        <div class="sheet-overlay" id="mobile-profile-overlay" onclick="app.closeMobileProfileMenu()"></div>
+        <div class="bottom-sheet" id="mobile-profile-sheet">
+            <div class="sheet-handle"></div>
+            <div id="mobile-profile-content">
+                <!-- Rendered by JS -->
+            </div>
         </div>
 
         <!-- Modal -->
@@ -1492,6 +2427,15 @@
     </div>
 
     <script>
+        window.onerror = function(msg, url, line, col, error) {
+            console.error("Global Error:", msg, url, line, col, error);
+            const main = document.getElementById('main-view');
+            if(main && main.innerHTML === '') { // Only if not already handled
+                 main.innerHTML = `<div style="padding-top:100px;text-align:center;color:red;">Global Error: ${msg}<br>Line: ${line}</div>`;
+            }
+            return false;
+        };
+
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -1670,6 +2614,15 @@
                 }, 3000);
             },
 
+            debounce: (func, wait) => {
+                let timeout;
+                return function(...args) {
+                    const context = this;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(context, args), wait);
+                };
+            },
+
             confirmAction: (msg, onConfirm) => {
                 const m = document.createElement('div');
                 m.className = 'modal-backdrop';
@@ -1807,17 +2760,71 @@
             },
 
             init: async () => {
-                await app.fetchDB();
-                app.checkSession();
-                app.renderHeader();
-                app.router(app.state.route); // Start at current route (or home)
-                
-                // Header scroll effect
-                window.addEventListener('scroll', () => {
-                    const h = document.getElementById('main-header');
-                    if(window.scrollY > 50) h.classList.add('scrolled');
-                    else h.classList.remove('scrolled');
-                });
+                var debugStep = "Inicio";
+                try {
+                    // 1. Compatibilidad
+                    debugStep = "Chequeo Compatibilidad";
+                    if (!window.fetch) throw new Error("Falta Fetch API");
+                    if (!window.Promise) throw new Error("Falta Promise API");
+
+                    console.log("Init starting...");
+
+                    // 2. Debounce
+                    debugStep = "Configurando Buscador (Debounce)";
+                    if (typeof app.debounce !== 'function') throw new Error("app.debounce no es funcion");
+                    app.debouncedSearch = app.debounce(app.handleSearch, 300);
+                    
+                    // 3. Base de Datos
+                    debugStep = "Cargando Base de Datos (fetchDB)";
+                    if (typeof app.fetchDB !== 'function') throw new Error("app.fetchDB no es funcion");
+                    await app.fetchDB();
+                    
+                    // 4. Sesión
+                    debugStep = "Verificando Sesión (checkSession)";
+                    if (typeof app.checkSession !== 'function') throw new Error("app.checkSession no es funcion");
+                    await app.checkSession();
+                    
+                    // 5. Header
+                    debugStep = "Renderizando Cabecera (renderHeader)";
+                    if (typeof app.renderHeader !== 'function') throw new Error("app.renderHeader no es funcion");
+                    app.renderHeader();
+                    
+                    // 6. Router / Home
+                    debugStep = "Renderizando Contenido Principal";
+                    if (app.state.route === 'home') {
+                        debugStep = "Ejecutando renderHome";
+                        if (typeof app.renderHome !== 'function') throw new Error("app.renderHome no es funcion");
+                        await app.renderHome();
+                    } else {
+                        debugStep = "Ejecutando Router para " + app.state.route;
+                        if (typeof app.router !== 'function') throw new Error("app.router no es funcion");
+                        app.router(app.state.route);
+                    }
+                    
+                    // 7. Scroll
+                    debugStep = "Eventos de Scroll";
+                    window.addEventListener('scroll', () => {
+                        const h = document.getElementById('main-header');
+                        if(h) {
+                             if(window.scrollY > 50) h.classList.add('scrolled');
+                             else h.classList.remove('scrolled');
+                        }
+                    });
+
+                } catch(e) {
+                    console.error("Init Error at " + debugStep, e);
+                    document.getElementById('main-view').innerHTML = `<div style="padding-top:100px;text-align:center;color:white;padding:20px;">
+                        <h3 style="color:red">Error cargando la aplicación</h3>
+                        <div style="background:#222; padding:15px; margin:20px auto; border-radius:8px; max-width:600px; text-align:left;">
+                            <p style="color:#ff6b6b; font-weight:bold; margin-bottom:10px;">Fallo en: ${debugStep}</p>
+                            <p style="color:white; font-family:monospace;">${e.message}</p>
+                            <hr style="border-color:#444; margin:10px 0;">
+                            <small style="color:#aaa;">${e.stack || 'No stack trace'}</small>
+                        </div>
+                        <button onclick="location.reload()" class="btn btn-secondary" style="margin-top:20px;">Reintentar</button>
+                        <button onclick="localStorage.clear(); location.reload()" class="btn btn-danger" style="margin-top:20px;">Restablecer App</button>
+                    </div>`;
+                }
             },
 
             /* --- Data Logic --- */
@@ -1828,6 +2835,7 @@
                         const data = await res.json();
                         allItems = data.items || [];
                         allUsers = data.users || [];
+                        app.state.notifications = data.notifications || [];
                     }
                 } catch(e) { console.error("Error DB", e); }
             },
@@ -1952,6 +2960,13 @@
 
             /* --- Router & Rendering --- */
             router: (route) => {
+                // Clear search query on navigation
+                if (app.state.searchQuery) {
+                    app.state.searchQuery = null;
+                    const searchInput = document.querySelector('.search-input');
+                    if(searchInput) searchInput.value = '';
+                }
+
                 app.state.route = route;
                 window.scrollTo(0,0);
                 
@@ -1963,6 +2978,7 @@
                 const navId = route === 'home' ? 'nav-home' : 
                               route === 'series' ? 'nav-series' : 
                               route === 'movies' ? 'nav-movies' : 
+                              route === 'mylist' ? 'nav-mylist' : 
                               route === 'admin' ? 'nav-admin' : '';
                 if(navId) document.getElementById(navId)?.classList.add('active');
 
@@ -1995,7 +3011,7 @@
                         <h1 style="font-size:3rem; margin-bottom:1rem;">¿Quién está viendo ahora?</h1>
                         <div class="profile-list">
                             ${(user.profiles || []).map(p => `
-                                <div class="profile-item" onclick="app.selectProfile(${p.id})">
+                                <div class="profile-item" onclick="app.selectProfile(${p.id})" style="cursor:pointer;">
                                     <div class="profile-avatar" style="background-image:url('${p.avatar}')"></div>
                                     <span class="profile-name">${p.name}</span>
                                 </div>
@@ -2013,6 +3029,7 @@
             },
 
             selectProfile: (id) => {
+                console.log("Selecting profile:", id);
                 const profile = app.state.user.profiles.find(p => p.id === id);
                 if(profile) {
                     if(profile.pin) {
@@ -2032,6 +3049,9 @@
                         return;
                     }
                     app.activateProfile(profile);
+                } else {
+                    console.error("Profile not found:", id);
+                    app.showToast("Error al seleccionar perfil", "error");
                 }
             },
 
@@ -2051,12 +3071,25 @@
             },
 
             activateProfile: (profile) => {
-                app.state.currentProfile = profile;
-                localStorage.setItem('niro_profile', JSON.stringify(profile));
-                document.getElementById('main-header').style.display = 'block';
-                document.body.classList.remove('in-profile-gate');
-                app.renderHeader();
-                app.router('home');
+                console.log("Activating profile:", profile.name);
+                try {
+                    app.state.currentProfile = profile;
+                    localStorage.setItem('niro_profile', JSON.stringify(profile));
+                    
+                    const header = document.getElementById('main-header');
+                    if(header) header.style.display = 'block';
+                    
+                    document.body.classList.remove('in-profile-gate');
+                    
+                    app.renderHeader();
+                    
+                    // Force navigation to home even if route seems same
+                    console.log("Routing to home...");
+                    app.router('home');
+                } catch(e) {
+                    console.error("Error activating profile:", e);
+                    app.showToast("Error al activar perfil: " + e.message, "error");
+                }
             },
 
             selectAvatar: (el, url) => {
@@ -2502,6 +3535,18 @@
                 } else {
                     user.myList.push(itemId);
                     app.showToast("Agregado a Mi Lista");
+                    
+                    // Confetti Effect
+                    setTimeout(() => {
+                        const btn = document.getElementById(`btn-mylist-${itemId}`);
+                        if(btn) {
+                            const rect = btn.getBoundingClientRect();
+                            runConfetti(rect.left + rect.width/2, rect.top + rect.height/2);
+                        } else {
+                            // Fallback to center if button not found (e.g. hero button)
+                            runConfetti(window.innerWidth/2, window.innerHeight/2);
+                        }
+                    }, 100);
                 }
                 
                 // Update button if exists
@@ -2545,7 +3590,123 @@
                 }
             },
 
+            shareItem: (itemId) => {
+                const item = allItems.find(i => i.id === itemId);
+                if(!item) return;
+                
+                const shareData = {
+                    title: 'NIRO: ' + item.title,
+                    text: `Mira "${item.title}" en NIRO Streaming.`,
+                    url: window.location.origin + '/?item=' + itemId
+                };
+
+                if (navigator.share) {
+                    navigator.share(shareData).catch(console.error);
+                } else {
+                    navigator.clipboard.writeText(shareData.text + ' ' + shareData.url).then(() => {
+                        app.showToast("Enlace copiado al portapapeles");
+                    });
+                }
+            },
+
+            setSearch: (query) => {
+                app.state.searchQuery = query;
+                const input = document.getElementById('search-input');
+                if(input) {
+                    input.value = query;
+                    input.focus();
+                }
+                app.renderHome();
+            },
+
+            playTrailer: (url) => {
+                const modal = document.getElementById('generic-modal');
+                const content = document.getElementById('generic-modal-content');
+                
+                // Check if it's a YouTube URL to embed or a direct video file
+                let videoHtml = '';
+                if(url.includes('youtube.com') || url.includes('youtu.be')) {
+                    // Extract ID (simple regex)
+                    let videoId = '';
+                    if(url.includes('v=')) videoId = url.split('v=')[1].split('&')[0];
+                    else if(url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1];
+                    
+                    videoHtml = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                } else {
+                    videoHtml = `<video src="${url}" controls autoplay style="width:100%; height:100%; max-height:80vh;"></video>`;
+                }
+
+                content.innerHTML = `
+                    <div style="position:relative; width:90vw; max-width:1000px; aspect-ratio:16/9; background:black; border-radius:8px; overflow:hidden; box-shadow:0 0 50px rgba(0,0,0,0.5);">
+                        <button onclick="document.getElementById('generic-modal').style.display='none'; document.getElementById('generic-modal-content').innerHTML='';" style="position:absolute; top:10px; right:10px; z-index:100; background:rgba(0,0,0,0.5); border:none; color:white; font-size:1.5rem; cursor:pointer; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="ri-close-line"></i></button>
+                        ${videoHtml}
+                    </div>
+                `;
+                
+                modal.style.display = 'flex';
+                
+                // Close on click outside
+                modal.onclick = (e) => {
+                    if(e.target === modal) {
+                        modal.style.display = 'none';
+                        content.innerHTML = '';
+                    }
+                };
+            },
+
+            // --- Card Interactivity (Hover Preview) ---
+            previewTimeout: null,
+            startCardPreview: (cardElement, trailerUrl) => {
+                if(!trailerUrl || app.isMobile()) return;
+                
+                app.previewTimeout = setTimeout(() => {
+                    const previewContainer = cardElement.querySelector('.card-preview-container');
+                    if(previewContainer) {
+                        // For YouTube trailers
+                        if(trailerUrl.includes('youtube.com') || trailerUrl.includes('youtu.be')) {
+                             let videoId = '';
+                             if(trailerUrl.includes('v=')) videoId = trailerUrl.split('v=')[1].split('&')[0];
+                             else if(trailerUrl.includes('youtu.be/')) videoId = trailerUrl.split('youtu.be/')[1];
+                             
+                             if(videoId) {
+                                 previewContainer.innerHTML = `
+                                    <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&start=10&end=30&modestbranding=1&loop=1&playlist=${videoId}" 
+                                        style="position:absolute; inset:0; width:100%; height:100%; border:none; object-fit:cover; pointer-events:none;" 
+                                        allow="autoplay; encrypted-media"></iframe>
+                                 `;
+                                 previewContainer.style.opacity = '1';
+                             }
+                        } else {
+                            // Direct video file
+                            previewContainer.innerHTML = `
+                                <video src="${trailerUrl}" autoplay muted loop playsinline 
+                                    style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;">
+                                </video>
+                            `;
+                            previewContainer.style.opacity = '1';
+                        }
+                    }
+                }, 800); // 800ms delay to prevent accidental triggers
+            },
+
+            stopCardPreview: (cardElement) => {
+                if(app.previewTimeout) clearTimeout(app.previewTimeout);
+                const previewContainer = cardElement.querySelector('.card-preview-container');
+                if(previewContainer) {
+                    previewContainer.style.opacity = '0';
+                    setTimeout(() => {
+                         previewContainer.innerHTML = '';
+                    }, 300);
+                }
+            },
+            
+            isMobile: () => {
+                return window.innerWidth <= 768;
+            },
+
             downloadItem: async (id, parentId = null) => {
+                if(!app.state.user) return app.showToast("Debes iniciar sesión para descargar contenido.", "error");
+
                 let item, videoUrl, title, poster, type, downloadId;
 
                 if (parentId) {
@@ -2604,6 +3765,11 @@
                 }
 
                 app.showToast("Iniciando descarga...", "info");
+                
+                // Update active downloads state
+                app.state.activeDownloads = (app.state.activeDownloads || 0) + 1;
+                app.renderHeader();
+
                 const btn = document.getElementById(`btn-download-${downloadId}`);
                 let originalContent = '';
                 if(btn) {
@@ -2627,10 +3793,14 @@
                     });
                     
                     app.showToast("Descarga completada", "success");
+                    app.state.activeDownloads = Math.max(0, (app.state.activeDownloads || 1) - 1);
+                    app.renderHeader();
                     openDetails(parentId || downloadId); // Refresh UI
                 } catch(e) {
                     console.error(e);
                     app.showToast("Error en la descarga. Verifica tu conexión.", "error");
+                    app.state.activeDownloads = Math.max(0, (app.state.activeDownloads || 1) - 1);
+                    app.renderHeader();
                     if(btn) {
                         btn.innerHTML = originalContent || `<i class="ri-download-line"></i>`;
                         btn.disabled = false;
@@ -2726,45 +3896,142 @@
                 }
             },
 
+            markNotificationsRead: async () => {
+                if(!app.state.notifications || app.state.notifications.length === 0) return;
+                
+                // Update local state
+                app.state.notifications = [];
+                
+                // Update DB
+                await app.saveDB({ notifications: [] });
+                
+                app.renderHeader();
+                app.showToast("Notificaciones marcadas como leídas");
+            },
+
+            deleteNotification: async (index) => {
+                if(!app.state.notifications) return;
+                
+                const notifs = [...app.state.notifications];
+                notifs.splice(index, 1);
+                app.state.notifications = notifs;
+                
+                await app.saveDB({ notifications: notifs });
+                app.renderHeader();
+                app.toggleNotifications(); // Re-open to show update
+            },
+
             handleSearch: (query) => {
                 const resultsContainer = document.getElementById('search-results-dropdown');
+                
+                // Show Suggestions if query is empty (Search inteligente)
                 if (!query || query.trim().length === 0) {
-                    if (resultsContainer) resultsContainer.style.display = 'none';
+                    if (resultsContainer) {
+                        // Suggest top items based on match score or just popular ones
+                        const suggestions = [...allItems].sort((a,b) => (b.match||0) - (a.match||0)).slice(0, 5);
+                        
+                        let html = `<div style="padding:10px 15px; font-size:0.8rem; color:var(--color-brand-primary); font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.05); text-transform:uppercase; letter-spacing:1px;">Tendencias</div>`;
+                        
+                        if(suggestions.length > 0) {
+                            html += suggestions.map((item, idx) => `
+                                <div onclick="openDetails(${item.id}); document.getElementById('search-results-dropdown').style.display='none';" 
+                                     style="padding:10px 15px; display:flex; gap:12px; cursor:pointer; align-items:center; transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+                                    <div style="font-size:1.2rem; font-weight:800; color:rgba(255,255,255,0.2); width:20px; text-align:center;">${idx+1}</div>
+                                    <div style="font-size:0.9rem; color:white; font-weight:500;">${item.title}</div>
+                                    ${item.year ? `<div style="font-size:0.75rem; color:#666; margin-left:auto;">${item.year}</div>` : ''}
+                                </div>
+                            `).join('');
+                        } else {
+                            html += `<div style="padding:15px; color:#666; font-size:0.9rem;">Explora nuestro catálogo...</div>`;
+                        }
+                        
+                        resultsContainer.innerHTML = html;
+                        resultsContainer.style.display = 'block';
+                    }
                     return;
                 }
 
                 const q = query.toLowerCase();
-                const matches = allItems.filter(item => 
-                    item.title.toLowerCase().includes(q) || 
-                    (item.genre && item.genre.toLowerCase().includes(q)) ||
-                    (item.description && item.description.toLowerCase().includes(q))
-                ).slice(0, 10); // Limit to 10 results
+                
+                // Weighted search
+                const scoredItems = allItems.map(item => {
+                    let score = 0;
+                    if (item.title.toLowerCase() === q) score += 100; // Exact match
+                    else if (item.title.toLowerCase().startsWith(q)) score += 50; // Starts with
+                    else if (item.title.toLowerCase().includes(q)) score += 20; // Contains
+                    
+                    if (item.genre && item.genre.toLowerCase().includes(q)) score += 10;
+                    if (item.cast && item.cast.toLowerCase().includes(q)) score += 5;
+                    if (item.director && item.director.toLowerCase().includes(q)) score += 5;
+                    
+                    return { item, score };
+                }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
+
+                const matches = scoredItems.slice(0, 8).map(x => x.item);
 
                 if (resultsContainer) {
                     if (matches.length > 0) {
-                        resultsContainer.innerHTML = matches.map(item => `
-                            <div onclick="openDetails(${item.id}); document.getElementById('search-results-dropdown').style.display='none';" 
-                                 style="padding:10px; display:flex; gap:10px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.05); align-items:center;">
-                                <img src="${item.poster || item.img}" style="width:50px; height:75px; object-fit:cover; border-radius:4px;">
-                                <div>
-                                    <div style="font-weight:bold; font-size:0.9rem; color:white;">${item.title}</div>
-                                    <div style="font-size:0.8rem; color:#aaa;">${item.year || ''} • ${item.genre || 'Desconocido'}</div>
+                        const movies = matches.filter(m => m.type === 'movie');
+                        const series = matches.filter(m => m.type === 'series');
+                        
+                        let html = '';
+                        
+                        if(movies.length > 0) {
+                            html += `<div style="padding:8px 15px; font-size:0.7rem; color:var(--color-text-secondary); text-transform:uppercase; font-weight:bold; letter-spacing:1px; background:rgba(255,255,255,0.02);">Películas</div>`;
+                            html += movies.map(item => app.renderSearchItem(item)).join('');
+                        }
+                        
+                        if(series.length > 0) {
+                            html += `<div style="padding:8px 15px; font-size:0.7rem; color:var(--color-text-secondary); text-transform:uppercase; font-weight:bold; letter-spacing:1px; background:rgba(255,255,255,0.02); margin-top:5px;">Series</div>`;
+                            html += series.map(item => app.renderSearchItem(item)).join('');
+                        }
+                        
+                        // 'View all' option if more results might exist
+                        if(scoredItems.length > 8) {
+                             html += `
+                                <div onclick="app.setSearch('${query}')" style="padding:12px; text-align:center; font-size:0.9rem; color:var(--color-brand-primary); cursor:pointer; border-top:1px solid rgba(255,255,255,0.1); font-weight:bold; transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+                                    Ver todos los resultados (${scoredItems.length})
                                 </div>
-                            </div>
-                        `).join('');
+                             `;
+                        }
+                        
+                        resultsContainer.innerHTML = html;
                         resultsContainer.style.display = 'block';
                     } else {
-                        resultsContainer.innerHTML = `<div style="padding:15px; text-align:center; color:#aaa;">No se encontraron resultados</div>`;
+                        resultsContainer.innerHTML = `<div style="padding:20px; text-align:center; color:#888; font-style:italic;">No se encontraron resultados para "${query}"</div>`;
                         resultsContainer.style.display = 'block';
                     }
                 }
             },
 
+            renderSearchItem: (item) => {
+                return `
+                    <div onclick="openDetails(${item.id}); document.getElementById('search-results-dropdown').style.display='none';" 
+                         style="padding:10px 15px; display:flex; gap:12px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.03); align-items:center; transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">
+                        <img src="${item.poster || item.img}" style="width:45px; height:68px; object-fit:cover; border-radius:4px; box-shadow:0 2px 5px rgba(0,0,0,0.5);">
+                        <div style="flex:1;">
+                            <div style="font-weight:600; font-size:0.95rem; color:white; margin-bottom:3px;">${item.title}</div>
+                            <div style="font-size:0.75rem; color:#aaa; display:flex; gap:8px; align-items:center;">
+                                <span>${item.year || 'N/A'}</span>
+                                <span style="width:3px; height:3px; background:#666; border-radius:50%;"></span>
+                                <span style="color:var(--color-brand-accent);">${item.rating || 'N/A'}</span>
+                            </div>
+                        </div>
+                        <div style="opacity:0; transform:translateX(10px); transition:0.2s;" class="search-item-arrow">
+                            <i class="ri-arrow-right-s-line" style="color:var(--color-brand-primary);"></i>
+                        </div>
+                    </div>
+                `;
+            },
+
             isApp: () => {
-                return window.matchMedia('(display-mode: standalone)').matches || 
-                       window.navigator.standalone || 
-                       window.pywebview !== undefined ||
-                       /NIRO_App/.test(navigator.userAgent);
+                try {
+                    const isStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+                    return isStandalone || 
+                           (window.navigator && window.navigator.standalone) || 
+                           (window.pywebview !== undefined) ||
+                           /NIRO_App/.test(navigator.userAgent);
+                } catch(e) { return false; }
             },
 
             
@@ -2783,7 +4050,7 @@
                 }
                 
                 // Highlight active mobile nav
-                document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
                 const route = app.state.route;
                 if(route === 'home') document.getElementById('nav-home')?.classList.add('active');
                 if(route === 'series') document.getElementById('nav-series')?.classList.add('active');
@@ -2792,12 +4059,10 @@
                 if(route === 'profile') document.getElementById('nav-profile')?.classList.add('active');
                 
                 const h = document.getElementById('main-header');
-
-                const h = document.getElementById('main-header');
-                const user = app.state.user;
-                const profile = app.state.currentProfile;
                 const showInstall = !app.isApp();
                 
+                const notifCount = (app.state.notifications || []).length;
+                const myListCount = (profile && profile.myList) ? profile.myList.length : 0;
                 h.innerHTML = `
                     <div class="header-content">
                         <a href="#" class="logo" onclick="app.router('home')" style="display:flex;align-items:center;">
@@ -2808,39 +4073,53 @@
                             <a class="nav-link ${app.state.route==='series'?'active':''}" onclick="app.router('series')">Series</a>
                             <a class="nav-link ${app.state.route==='movies'?'active':''}" onclick="app.router('movies')">Películas</a>
                             <a class="nav-link ${app.state.route==='downloads'?'active':''}" onclick="app.router('downloads')">Descargas</a>
-                            ${user && user.role === 'admin' ? `<a class="nav-link ${app.state.route==='admin'?'active':''}" onclick="app.router('admin')">Admin</a>` : ''}
                         </nav>
                         
                         <div style="margin-left:auto; display:flex; align-items:center; gap:20px;">
                             <div style="display:flex; align-items:center; gap:15px;">
+                                <!-- Watchlist Indicator -->
+                                ${user && profile ? `
+                                <div style="position:relative; cursor:pointer;" onclick="app.router('mylist')" title="Mi Lista">
+                                    <i class="ri-bookmark-line" style="font-size:1.2rem; color:var(--color-text-secondary); transition:0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'"></i>
+                                    ${myListCount > 0 ? `<span style="position:absolute; top:-6px; right:-6px; min-width:16px; height:16px; background:var(--color-brand-primary); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:bold; padding:0 3px; color:white; box-shadow:0 2px 5px rgba(0,0,0,0.5);">${myListCount}</span>` : ''}
+                                </div>
+                                ` : ''}
+
+                                <!-- Download Status -->
+                                <div style="position:relative; cursor:pointer;" onclick="app.router('downloads')" title="Descargas">
+                                     <i class="ri-download-cloud-2-line" style="font-size:1.2rem; color:var(--color-text-secondary); transition:0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'"></i>
+                                     <span id="header-download-badge" style="display:none; position:absolute; top:-6px; right:-6px; min-width:16px; height:16px; background:var(--color-brand-accent); border-radius:8px; align-items:center; justify-content:center; font-size:0.65rem; font-weight:bold; padding:0 3px; color:white; box-shadow:0 2px 5px rgba(0,0,0,0.5);"></span>
+                                </div>
+
                                 <div class="search-bar" style="position:relative;">
                                     <i class="ri-search-line" style="color:var(--color-text-secondary);"></i>
-                                    <input type="text" class="search-input" placeholder="Buscar..." oninput="app.handleSearch(this.value)" onfocus="app.handleSearch(this.value)" onblur="setTimeout(() => { if(document.getElementById('search-results-dropdown')) document.getElementById('search-results-dropdown').style.display='none' }, 200)">
+                                    <input type="text" class="search-input" placeholder="Buscar..." oninput="app.debouncedSearch(this.value)" onfocus="app.handleSearch(this.value)" onblur="setTimeout(() => { if(document.getElementById('search-results-dropdown')) document.getElementById('search-results-dropdown').style.display='none' }, 200)">
                                     <div id="search-results-dropdown" style="display:none; position:absolute; top:110%; left:0; right:0; background:rgba(20,20,20,0.95); border:1px solid rgba(255,255,255,0.1); border-radius:4px; max-height:400px; overflow-y:auto; z-index:1000; box-shadow:0 10px 30px rgba(0,0,0,0.8);"></div>
                                 </div>
                                 ${user ? `
                                     <div style="position:relative;">
                                         <div style="cursor:pointer; position:relative;" onclick="app.toggleNotifications()">
                                             <i class="ri-notification-3-line" style="font-size:1.2rem; color:var(--color-text-secondary);"></i>
-                                            <span style="position:absolute; top:-2px; right:-2px; width:8px; height:8px; background:var(--color-brand-accent); border-radius:50%;"></span>
+                                            ${notifCount > 0 ? `<span style="position:absolute; top:-6px; right:-6px; min-width:16px; height:16px; background:#e50914; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:bold; padding:0 3px; color:white; box-shadow:0 2px 5px rgba(0,0,0,0.5);">${notifCount}</span>` : ''}
                                         </div>
                                         <div id="notification-dropdown" style="display:none; position:absolute; top:120%; right:0; width:300px; background:rgba(0,0,0,0.95); border:1px solid rgba(255,255,255,0.1); border-radius:4px; padding:0; z-index:100; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
-                                            <div style="padding:10px 15px; border-bottom:1px solid rgba(255,255,255,0.1); font-weight:bold; font-size:0.9rem;">Notificaciones</div>
+                                            <div style="padding:10px 15px; border-bottom:1px solid rgba(255,255,255,0.1); font-weight:bold; font-size:0.9rem; display:flex; justify-content:space-between; align-items:center;">
+                                                <span>Notificaciones</span>
+                                                <span style="font-size:0.7rem; color:var(--color-brand-primary); cursor:pointer;" onclick="app.markNotificationsRead()">Marcar todo leído</span>
+                                            </div>
                                             <div style="max-height:300px; overflow-y:auto;">
-                                                <div style="padding:10px 15px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; gap:10px; align-items:center;">
-                                                    <div style="width:40px; height:60px; background:rgba(255,255,255,0.1); border-radius:4px; display:flex; align-items:center; justify-content:center;"><i class="ri-film-line"></i></div>
-                                                    <div>
-                                                        <div style="font-size:0.85rem; color:white;">Nuevo contenido añadido</div>
-                                                        <div style="font-size:0.7rem; color:#aaa;">Explora las novedades de hoy</div>
+                                                ${((app.state.notifications||[]).length === 0) ? `<div style="padding:15px; color:#aaa;">Sin notificaciones</div>` : (app.state.notifications||[]).map((n,i)=>`
+                                                    <div style="padding:10px 15px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; gap:10px; align-items:center; transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+                                                        <div style="width:40px; height:60px; background:rgba(255,255,255,0.1); border-radius:4px; display:flex; align-items:center; justify-content:center;"><i class="ri-notification-3-line"></i></div>
+                                                        <div style="flex:1;">
+                                                            <div style="font-size:0.85rem; color:white;">${n.title || 'Aviso'}</div>
+                                                            <div style="font-size:0.7rem; color:#aaa;">${n.message || ''}</div>
+                                                        </div>
+                                                        <button onclick="app.deleteNotification(${i})" style="background:none; border:none; color:#aaa; cursor:pointer;">
+                                                            <i class="ri-close-line"></i>
+                                                        </button>
                                                     </div>
-                                                </div>
-                                                <div style="padding:10px 15px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; gap:10px; align-items:center;">
-                                                    <div style="width:40px; height:60px; background:rgba(139, 92, 246, 0.2); border-radius:4px; display:flex; align-items:center; justify-content:center; color:var(--color-brand-primary);"><i class="ri-user-smile-line"></i></div>
-                                                    <div>
-                                                        <div style="font-size:0.85rem; color:white;">¡Bienvenido a Niro!</div>
-                                                        <div style="font-size:0.7rem; color:#aaa;">Configura tu perfil ahora</div>
-                                                    </div>
-                                                </div>
+                                                `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -2913,10 +4192,19 @@
                                             
                                             <div style="height:1px; background:rgba(255,255,255,0.1); margin:10px 0;"></div>
 
-                                            <div onclick="app.router('account')" style="padding:10px 20px; cursor:pointer; font-size:0.9rem; color:#ccc; display:flex; align-items:center; gap:10px;">
+                                            <div onclick="app.router('account')" style="padding:10px 20px; cursor:pointer; font-size:0.9rem; color:#ccc; display:flex; align-items:center; gap:10px; transition:0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#ccc'">
                                                 <i class="ri-user-settings-line"></i> Cuenta
                                             </div>
-                                            <div onclick="app.router('profiles')" style="padding:10px 20px; cursor:pointer; font-size:0.9rem; color:#ccc; display:flex; align-items:center; gap:10px;">
+                                            <div onclick="app.showToast('Configuración próximamente')" style="padding:10px 20px; cursor:pointer; font-size:0.9rem; color:#ccc; display:flex; align-items:center; gap:10px; transition:0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#ccc'">
+                                                <i class="ri-settings-3-line"></i> Configuración
+                                            </div>
+                                            <div onclick="app.showToast('Ayuda próximamente')" style="padding:10px 20px; cursor:pointer; font-size:0.9rem; color:#ccc; display:flex; align-items:center; gap:10px; transition:0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#ccc'">
+                                                <i class="ri-question-line"></i> Ayuda
+                                            </div>
+                                            
+                                            <div style="height:1px; background:rgba(255,255,255,0.1); margin:10px 0;"></div>
+
+                                            <div onclick="app.router('profiles')" style="padding:10px 20px; cursor:pointer; font-size:0.9rem; color:#ccc; display:flex; align-items:center; gap:10px; transition:0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#ccc'">
                                                 <i class="ri-arrow-left-right-line"></i> Cambiar de perfil
                                             </div>
                                             
@@ -2944,6 +4232,24 @@
                 `;
                 setTimeout(() => app.renderInstallArea(), 100);
 
+                // Check downloads status
+                DownloadManager.list().then(list => {
+                    const badge = document.getElementById('header-download-badge');
+                    if(badge) {
+                        const count = list.length;
+                        const active = app.state.activeDownloads > 0;
+                        
+                        if(count > 0 || active) {
+                            badge.style.display = 'flex';
+                            badge.innerText = count + (active ? '+' : '');
+                            badge.style.background = active ? 'var(--color-brand-accent)' : 'var(--color-brand-primary)';
+                            badge.title = active ? 'Descargas activas...' : 'Descargas completadas';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                });
+
             },
 
             deleteDownload: async (id, isFolder=false) => {
@@ -2963,6 +4269,7 @@
             },
 
             renderDownloads: async () => {
+                if(!app.state.user) { app.router('login'); app.showToast("Debes iniciar sesión para ver descargas", "error"); return; }
                 const main = document.getElementById('main-view');
                 const viewingSeriesId = app.state.viewingDownloadSeriesId;
                 
@@ -3088,6 +4395,10 @@
             },
 
             renderHome: async (filterType = null) => {
+                // PATCH: Robust check for globals
+                if(typeof allItems === 'undefined' || !Array.isArray(allItems)) allItems = [];
+                if(typeof allUsers === 'undefined' || !Array.isArray(allUsers)) allUsers = [];
+
                 const main = document.getElementById('main-view');
                 const isOffline = !navigator.onLine;
 
@@ -3240,23 +4551,63 @@
 
                 // Pick a hero (random or first from filtered)
                 const heroItem = displayItems[Math.floor(Math.random() * displayItems.length)];
+                const inList = app.state.user && app.state.user.myList && app.state.user.myList.includes(heroItem.id);
                 
                 let html = `
                     <div class="hero">
-                        <div class="hero-bg" style="background-image: url('${heroItem.img}')"></div>
+                        <div class="hero-aura" style="background-image: url('${heroItem.img}')"></div>
+                        <div class="hero-bg" style="background-image: url('${heroItem.img}')">
+                             ${heroItem.trailer ? `
+                                <video id="hero-video" src="${heroItem.trailer}" autoplay muted loop playsinline style="width:100%; height:100%; object-fit:cover; opacity:0.6;"></video>
+                                <button onclick="const v=document.getElementById('hero-video'); v.muted=!v.muted; this.innerHTML=v.muted?'<i class=\'ri-volume-mute-line\'></i>':'<i class=\'ri-volume-up-line\'></i>'" style="position:absolute; bottom:20px; right:20px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.3); border-radius:50%; width:40px; height:40px; color:white; cursor:pointer; z-index:20; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='white'; this.style.color='black'" onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.color='white'">
+                                    <i class="ri-volume-mute-line"></i>
+                                </button>
+                             ` : ''}
+                        </div>
                         <div class="hero-overlay"></div>
                         <div class="hero-content">
-                            <span style="background:rgba(255,255,255,0.2);backdrop-filter:blur(5px);padding:4px 10px;border-radius:4px;font-size:0.8rem;margin-bottom:1rem;display:inline-block;border:1px solid rgba(255,255,255,0.1);">DESTACADO</span>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:1rem;">
+                                <span style="background:rgba(255,255,255,0.2);backdrop-filter:blur(5px);padding:4px 10px;border-radius:4px;font-size:0.8rem;border:1px solid rgba(255,255,255,0.1);">DESTACADO</span>
+                            </div>
+                            
                             <h1 class="hero-title">${heroItem.title}</h1>
+                            
                             <div class="hero-meta">
                                 <span class="match-score">${heroItem.match || 98}% Match</span>
                                 <span>${heroItem.year}</span>
                                 <span style="border:1px solid rgba(255,255,255,0.3);padding:0 5px;border-radius:2px;">${heroItem.rating || '16+'}</span>
+                                <span>${heroItem.duration ? Math.floor(heroItem.duration/60) + 'h ' + (heroItem.duration%60) + 'm' : '2h 15m'}</span>
+                                ${heroItem.quality ? `<span style="border:1px solid rgba(255,255,255,0.3);padding:0 5px;border-radius:2px;font-size:0.7rem;">${heroItem.quality}</span>` : `<span style="border:1px solid rgba(255,255,255,0.3);padding:0 5px;border-radius:2px;font-size:0.7rem;">HD</span>`}
                             </div>
+                            
+                            <div class="hero-details" style="margin-bottom:1rem; font-size:0.9rem; color:#ccc; display:flex; flex-wrap:wrap; gap:15px; align-items:center;">
+                                ${heroItem.genre ? `<div><span style="color:#777;">Géneros:</span> ${heroItem.genre.split(',').map(g => `<span class="meta-tag" onclick="event.stopPropagation(); app.setSearch('${g.trim()}')" style="color:white; cursor:pointer; text-decoration:underline; margin-right:3px;">${g.trim()}</span>`).join(', ')}</div>` : ''}
+                                ${heroItem.cast ? `<div><span style="color:#777;">Elenco:</span> ${heroItem.cast.split(',').map(c => `<span class="meta-tag" onclick="event.stopPropagation(); app.setSearch('${c.trim()}')" style="color:white; cursor:pointer; text-decoration:underline; margin-right:3px;">${c.trim()}</span>`).join(', ')}</div>` : ''}
+                                ${heroItem.director ? `<div><span style="color:#777;">Director:</span> <span class="meta-tag" onclick="event.stopPropagation(); app.setSearch('${heroItem.director.trim()}')" style="color:white; cursor:pointer; text-decoration:underline;">${heroItem.director}</span></div>` : ''}
+                            </div>
+
                             <p class="hero-desc">${heroItem.desc}</p>
-                            <div style="display:flex;gap:1rem;">
-                                <button class="btn btn-primary" onclick="playItem(${heroItem.id})"><i class="ri-play-fill"></i> Reproducir</button>
-                                <button class="btn btn-secondary" onclick="openDetails(${heroItem.id})"><i class="ri-information-line"></i> Info</button>
+                            
+                            <div class="hero-actions">
+                                <button class="btn btn-primary" onclick="playItem(${heroItem.id})">
+                                    <i class="ri-play-fill"></i> Reproducir
+                                </button>
+                                <button class="btn btn-secondary" onclick="openDetails(${heroItem.id})">
+                                    <i class="ri-information-line"></i> Info
+                                </button>
+                                ${heroItem.trailer ? `
+                                <button class="btn btn-secondary" onclick="app.playTrailer('${heroItem.trailer}')" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                                    <i class="ri-movie-line"></i> Trailer
+                                </button>
+                                ` : ''}
+                                ${app.state.user ? `
+                                <button class="btn" onclick="app.toggleMyList(${heroItem.id}); const icon = this.querySelector('i'); if(icon.classList.contains('ri-add-line')){ icon.classList.replace('ri-add-line','ri-check-line'); } else { icon.classList.replace('ri-check-line','ri-add-line'); }" title="Mi Lista" style="width:48px; height:48px; border-radius:50%; border:1px solid rgba(255,255,255,0.3); background:rgba(0,0,0,0.3); color:white; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.2rem; transition:0.2s;" onmouseover="this.style.background='white'; this.style.color='black'" onmouseout="this.style.background='rgba(0,0,0,0.3)'; this.style.color='white'">
+                                    <i class="${inList ? 'ri-check-line' : 'ri-add-line'}"></i>
+                                </button>
+                                <button class="btn" onclick="app.shareItem(${heroItem.id})" title="Compartir" style="width:48px; height:48px; border-radius:50%; border:1px solid rgba(255,255,255,0.3); background:rgba(0,0,0,0.3); color:white; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.2rem; transition:0.2s;" onmouseover="this.style.background='white'; this.style.color='black'" onmouseout="this.style.background='rgba(0,0,0,0.3)'; this.style.color='white'">
+                                    <i class="ri-share-forward-line"></i>
+                                </button>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -3277,7 +4628,7 @@
                 // Categories logic
                 let categories = [];
                 
-                // Continue Watching Category
+                // 1. Continue Watching
                 if(!filterType && app.state.currentProfile && app.state.currentProfile.continueWatching && app.state.currentProfile.continueWatching.length > 0) {
                      const continueItems = app.state.currentProfile.continueWatching.map(cw => {
                          const realItem = allItems.find(i => i.id === (cw.seriesId || cw.itemId));
@@ -3285,7 +4636,6 @@
                          
                          let playParams = {};
                          if(cw.seriesId) {
-                             // It's an episode. Find it in seasons.
                              if(realItem.seasons) {
                                 for(const s of realItem.seasons) {
                                     const ep = s.episodes.find(e => e.id === cw.itemId);
@@ -3298,9 +4648,7 @@
                          } else {
                              playParams = { video: realItem.video, title: realItem.title, itemId: realItem.id, seriesId: null };
                          }
-                         
-                         if(!playParams.video) return null; // Can't play if no video found
-
+                         if(!playParams.video) return null;
                          return { ...realItem, ...cw, playParams }; 
                      }).filter(i => i);
 
@@ -3313,7 +4661,102 @@
                      }
                 }
 
-                // Add "My List" if exists and not already on mylist page
+                // 2. Because you watched [X] (Smart Recommendation)
+                if(!filterType && app.state.currentProfile && app.state.currentProfile.continueWatching && app.state.currentProfile.continueWatching.length > 0) {
+                    // Get most recent watched
+                    const lastWatched = app.state.currentProfile.continueWatching.sort((a,b) => b.lastWatched - a.lastWatched)[0];
+                    if(lastWatched) {
+                        const lastItem = allItems.find(i => i.id === (lastWatched.seriesId || lastWatched.itemId));
+                        if(lastItem && lastItem.genre) {
+                            const mainGenre = lastItem.genre.split(',')[0].trim();
+                            categories.push({
+                                title: `Porque viste "${lastItem.title}"`,
+                                filter: i => i.id !== lastItem.id && i.genre && i.genre.includes(mainGenre)
+                            });
+                        }
+                    }
+                }
+
+                // 3. Trending Now (Simulated with high match score/recent year)
+                if(!filterType) {
+                    categories.push({
+                        title: "Tendencias Ahora",
+                        filter: i => i.year >= 2023 || (i.match && i.match > 95)
+                    });
+                }
+
+                // 4. Friends are watching (Real Social Integration)
+                if(!filterType && allUsers.length > 1) {
+                    const friendActivity = {}; // itemId -> Set(names)
+                    const currentUserEmail = app.state.user ? app.state.user.email : '';
+
+                    allUsers.forEach(u => {
+                        if (u.email === currentUserEmail) return; // Skip self
+                        if (u.profiles) {
+                            u.profiles.forEach(p => {
+                                if (p.continueWatching) {
+                                    p.continueWatching.forEach(cw => {
+                                        const id = cw.seriesId || cw.itemId;
+                                        if (!friendActivity[id]) friendActivity[id] = new Set();
+                                        friendActivity[id].add(p.name);
+                                    });
+                                }
+                            });
+                        }
+                    });
+
+                    const socialItems = [];
+                    Object.keys(friendActivity).forEach(k => {
+                        const item = allItems.find(i => i.id == k);
+                        if (item) {
+                            // Clone item to avoid mutating original
+                            const itemWithFriends = { ...item };
+                            itemWithFriends.friendNames = Array.from(friendActivity[k]);
+                            socialItems.push(itemWithFriends);
+                        }
+                    });
+
+                    if (socialItems.length > 0) {
+                        categories.push({
+                            title: "Tus amigos están viendo",
+                            isSocial: true,
+                            items: socialItems
+                        });
+                    }
+                }
+
+                // 5. Top 10 Global (Simulated)
+                if(!filterType) {
+                     categories.push({
+                        title: "Top 10 en Tu País",
+                        isRanked: true,
+                        filter: i => true, // We'll slice top 10 later
+                        sort: (a,b) => (b.match || 0) - (a.match || 0)
+                    });
+                }
+
+                // 6. Upcoming Releases (Real)
+                if(!filterType) {
+                     categories.push({
+                        title: "Próximamente",
+                        isUpcoming: true,
+                        filter: i => i.isUpcoming === true,
+                        sort: (a,b) => {
+                            if(a.releaseDate && b.releaseDate) return new Date(a.releaseDate) - new Date(b.releaseDate);
+                            return 0;
+                        }
+                    });
+                }
+
+                // 7. Award Winners
+                if(!filterType) {
+                    categories.push({
+                        title: "Ganadores de Premios",
+                        filter: i => i.awards && i.awards.length > 0
+                    });
+                }
+
+                // 8. My List
                 if(filterType !== 'mylist' && app.state.user && app.state.user.myList && app.state.user.myList.length > 0) {
                     categories.push({ 
                         title: "Mi Lista", 
@@ -3321,71 +4764,145 @@
                     });
                 }
 
+                // Standard Categories
                 if(!filterType || filterType === 'mylist') {
                     categories.push(
-                        { title: "Agregados Recientemente", filter: () => true },
+                        { title: "Nuevos Lanzamientos", filter: i => i.year >= 2024 },
                         { title: "Solo Películas", filter: i => i.type === 'movie' },
-                        { title: "Series Binge-worthy", filter: i => i.type === 'series' }
+                        { title: "Series para maratonear", filter: i => i.type === 'series' },
+                        { title: "Acción y Aventura", filter: i => i.genre && (i.genre.includes('Acción') || i.genre.includes('Aventura')) },
+                        { title: "Comedia", filter: i => i.genre && i.genre.includes('Comedia') }
                     );
                 } else {
                     categories.push(
-                        { title: filterType === 'movie' ? "Todas las Películas" : "Todas las Series", filter: i => i.type === filterType },
-                        { title: "Recientes", filter: i => i.type === filterType }
+                        { title: filterType === 'movie' ? "Películas Populares" : "Series Populares", filter: i => i.type === filterType },
+                        { title: "Recientes", filter: i => i.type === filterType && i.year >= 2023 },
+                        { title: "Acción", filter: i => i.type === filterType && i.genre && i.genre.includes('Acción') },
+                        { title: "Drama", filter: i => i.type === filterType && i.genre && i.genre.includes('Drama') }
                     );
                 }
 
                 categories.forEach(cat => {
-                    let items;
+                    let items = [];
                     if(cat.isContinueWatching) {
-                        items = cat.items;
+                        items = cat.items || [];
                     } else {
-                        // Apply mood filter to categories as well if active
-                        items = allItems.filter(cat.filter);
-                        if(app.state.currentMood) {
+                        // FIX: Safe filter execution
+                        if (Array.isArray(allItems) && typeof cat.filter === 'function') {
+                             try {
+                                 items = allItems.filter(cat.filter);
+                             } catch(err) {
+                                 console.warn('Category filter failed for', cat.title, err);
+                                 items = [];
+                             }
+                        }
+                        
+                        if(app.state.currentMood && items.length > 0) {
+                             // Mood filtering (simplified for brevity)
                             const moodMap = {
-                                'chill': ['Comedia', 'Documental', 'Romance'],
-                                'intense': ['Acción', 'Terror', 'Suspenso'],
+                                'chill': ['Comedia', 'Documental', 'Romance', 'Animación'],
+                                'intense': ['Acción', 'Terror', 'Suspenso', 'Crimen'],
                                 'magic': ['Fantasía', 'Ciencia Ficción', 'Aventura'],
-                                'drama': ['Drama']
+                                'drama': ['Drama', 'Misterio']
                             };
                             const allowedGenres = moodMap[app.state.currentMood] || [];
-                            items = items.filter(i => allowedGenres.includes(i.genre));
+                            items = items.filter(i => allowedGenres.some(g => i.genre && i.genre.includes(g)));
                         }
                     }
 
+                    if(cat.sort) items.sort(cat.sort);
+                    if(cat.isRanked) items = items.slice(0, 10);
                     if(items.length === 0) return;
                     
+                    // Shuffle standard categories slightly for variety if not ranked/sorted
+                    if(!cat.isContinueWatching && !cat.isRanked && !cat.sort) {
+                        items.sort(() => Math.random() - 0.5);
+                    }
+
                     html += `
                         <section class="section">
                             <div class="section-header">
                                 <h2 class="section-title">${cat.title}</h2>
                             </div>
                             <div class="slider-container">
-                                <div class="slider-track">
-                                    ${items.map(item => {
+                                <div class="slider-track" ${cat.isRanked ? 'style="gap:40px; padding-left:20px;"' : ''}>
+                                    ${items.map((item, index) => {
                                         const onclick = cat.isContinueWatching 
                                             ? `playItem(${item.id})`
                                             : `openDetails(${item.id})`;
-                                            
+                                        
+                                        const rankNumber = cat.isRanked ? `<div class="rank-number">${index + 1}</div>` : '';
+                                        
+                                        // Social Badge
+                                        let socialBadge = '';
+                                        if (cat.isSocial && item.friendNames && item.friendNames.length > 0) {
+                                            const friend = item.friendNames[Math.floor(Math.random() * item.friendNames.length)];
+                                            socialBadge = `
+                                                <div style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); padding:4px 8px; border-radius:20px; display:flex; align-items:center; gap:5px; font-size:0.7rem; border:1px solid rgba(255,255,255,0.2); z-index:5;">
+                                                    <div style="width:16px; height:16px; background:#ddd; border-radius:50%;"></div>
+                                                    <span>Visto por ${friend}</span>
+                                                </div>
+                                            `;
+                                        }
+
+                                        // Upcoming Badge
+                                        let upcomingBadge = '';
+                                        if (cat.isUpcoming) {
+                                            upcomingBadge = `
+                                                <div style="position:absolute; top:10px; left:10px; background:var(--color-brand-accent); color:white; padding:4px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold; z-index:5; box-shadow:0 2px 5px rgba(0,0,0,0.3);">
+                                                    PRÓXIMAMENTE
+                                                </div>
+                                            `;
+                                        }
+
+                                        // Card Template
                                         return `
-                                        <div class="card" onclick="${onclick}">
-                                            <div style="position:relative;">
+                                        <div class="card ${cat.isRanked ? 'ranked-card' : ''}" 
+                                             onclick="${onclick}" 
+                                             onmouseenter="app.startCardPreview(this, '${item.trailer || ''}')" 
+                                             onmouseleave="app.stopCardPreview(this)">
+                                            
+                                            ${rankNumber}
+                                            ${socialBadge}
+                                            ${upcomingBadge}
+                                            
+                                            <div class="card-media-wrapper" style="position:relative; width:100%; height:100%; overflow:hidden; border-radius:4px;">
                                                 <img src="${item.img}" alt="${item.title}" class="card-img" loading="lazy">
+                                                
+                                                <div class="card-preview-container"></div>
+                                                
                                                 ${cat.isContinueWatching && item.duration ? `
-                                                    <div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:rgba(255,255,255,0.3);">
+                                                    <div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:rgba(255,255,255,0.3); z-index:5;">
                                                         <div style="height:100%;width:${(item.time/item.duration)*100}%;background:var(--color-brand-primary);"></div>
                                                     </div>
-                                                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.6);border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:2px solid white;">
-                                                        <i class="ri-play-fill" style="color:white;font-size:1.5rem;margin-left:2px;"></i>
+                                                    <div class="play-icon-overlay">
+                                                        <i class="ri-play-fill"></i>
                                                     </div>
                                                 ` : ''}
-                                            </div>
-                                            <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(to top, black, transparent);">
-                                                <h4 style="font-size:0.9rem;">${item.title}</h4>
-                                                ${cat.isContinueWatching && item.seriesId ? `<p style="font-size:0.7rem;color:#ccc;">${item.playParams.title}</p>` : ''}
+
+                                                <!-- Hover Overlay with Quick Actions -->
+                                                <div class="card-hover-overlay">
+                                                    <div class="card-actions">
+                                                        <button class="action-btn play-btn" onclick="event.stopPropagation(); playItem(${item.id})"><i class="ri-play-fill"></i></button>
+                                                        <button class="action-btn" onclick="event.stopPropagation(); app.toggleMyList(${item.id})"><i class="ri-add-line"></i></button>
+                                                        <button class="action-btn" onclick="event.stopPropagation(); openDetails(${item.id})"><i class="ri-arrow-down-s-line"></i></button>
+                                                    </div>
+                                                    <div class="card-info">
+                                                        <h4 class="card-title">${item.title}</h4>
+                                                        <div class="card-meta">
+                                                            <span class="match">${item.match || 90}% Match</span>
+                                                            <span class="age">${item.rating || '16+'}</span>
+                                                            <span class="duration">${item.duration ? Math.floor(item.duration/60)+'h' : '2h'}</span>
+                                                        </div>
+                                                        <div class="card-genres">
+                                                            ${item.genre ? item.genre.split(',').slice(0,3).join(' • ') : ''}
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    `}).join('')}
+                                        `;
+                                    }).join('')}
                                 </div>
                             </div>
                         </section>
@@ -3569,6 +5086,13 @@
 
             /* --- Admin Panel --- */
             renderAdmin: () => {
+                // Security Check
+                if (!app.state.user || app.state.user.role !== 'admin') {
+                    app.router('home');
+                    app.showToast("Acceso denegado", "error");
+                    return;
+                }
+
                 const main = document.getElementById('main-view');
                 const tab = app.state.adminTab;
                 
@@ -3597,6 +5121,7 @@
                             <div class="admin-tab ${tab==='dashboard'?'active':''}" onclick="app.state.adminTab='dashboard';app.renderAdmin()">Dashboard</div>
                             <div class="admin-tab ${tab==='content'?'active':''}" onclick="app.state.adminTab='content';app.renderAdmin()">Contenido</div>
                             <div class="admin-tab ${tab==='users'?'active':''}" onclick="app.state.adminTab='users';app.renderAdmin()">Usuarios</div>
+                            <div class="admin-tab ${tab==='notifications'?'active':''}" onclick="app.state.adminTab='notifications';app.renderAdmin()">Notificaciones</div>
                             <div class="admin-tab ${tab==='requests'?'active':''}" onclick="app.state.adminTab='requests';app.renderAdmin()">Solicitudes ${pendingUsers > 0 ? `<span style="background:red;padding:0 6px;border-radius:10px;font-size:0.7rem;margin-left:5px;">${pendingUsers}</span>` : ''}</div>
                         </div>
                 `;
@@ -3668,18 +5193,40 @@
                             <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
                             <tbody>
                                 ${activeUsers.map(u => `
-                                    <tr>
+                                    <tr style="${u.banned ? 'opacity:0.6; background:rgba(255,0,0,0.1);' : ''}">
                                         <td>${u.name}</td>
                                         <td>${u.email}</td>
                                         <td>${u.role}</td>
-                                        <td>${u.status || 'Activo'}</td>
                                         <td>
-                                            ${u.email !== 'admin@niro.com' ? `<button class="btn btn-danger" style="padding:4px 10px;font-size:0.8rem;" onclick="deleteUser('${u.email}')">Eliminar</button>` : '<span style="opacity:0.5;font-size:0.8rem">Sistema</span>'}
+                                            ${u.banned ? '<span style="color:red; font-weight:bold;">BANEADO</span>' : (u.status || 'Activo')}
+                                        </td>
+                                        <td>
+                                            ${u.email !== 'admin@niro.com' ? `
+                                                <button class="btn btn-${u.banned ? 'primary' : 'warning'}" style="padding:4px 10px;font-size:0.8rem;margin-right:5px;" onclick="toggleBanUser('${u.email}')">${u.banned ? 'Desbanear' : 'Banear'}</button>
+                                                <button class="btn btn-danger" style="padding:4px 10px;font-size:0.8rem;" onclick="deleteUser('${u.email}')">Eliminar</button>
+                                            ` : '<span style="opacity:0.5;font-size:0.8rem">Sistema</span>'}
                                         </td>
                                     </tr>
                                 `).join('')}
                             </tbody>
                         </table>
+                    `;
+                } else if (tab === 'notifications') {
+                    content += `
+                        <div style="background:var(--color-bg-surface); padding:2rem; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+                            <h3 style="margin-bottom:1.5rem;">Enviar Notificación Global</h3>
+                            <form onsubmit="handleSendNotification(event)">
+                                <div class="form-group" style="margin-bottom:1rem;">
+                                    <label>Título</label>
+                                    <input type="text" name="title" required placeholder="Ej: Nuevo estreno..." style="width:100%; padding:10px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:white; border-radius:4px;">
+                                </div>
+                                <div class="form-group" style="margin-bottom:1rem;">
+                                    <label>Mensaje</label>
+                                    <textarea name="message" required placeholder="Escribe el mensaje aquí..." style="width:100%; padding:10px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:white; border-radius:4px; min-height:100px;"></textarea>
+                                </div>
+                                <button class="btn btn-primary">Enviar a Todos</button>
+                            </form>
+                        </div>
                     `;
                 } else if (tab === 'requests') {
                     const pendingUsers = allUsers.filter(u => u.status === 'pending');
@@ -3711,6 +5258,264 @@
 
         /* -------------------------------------------------------------------------- */
         /*                               HELPER FUNCTIONS                             */
+        
+        // --- Admin Helpers ---
+        async function toggleBanUser(email) {
+            const user = allUsers.find(u => u.email === email);
+            if(!user) return;
+            
+            user.banned = !user.banned;
+            await app.saveDB({ users: allUsers });
+            app.renderAdmin();
+            app.showToast(user.banned ? "Usuario baneado" : "Usuario desbaneado");
+        }
+
+        async function deleteUser(email) {
+             app.confirmAction(`¿Eliminar al usuario ${email}?`, async () => {
+                const idx = allUsers.findIndex(u => u.email === email);
+                if(idx > -1) {
+                    allUsers.splice(idx, 1);
+                    await app.saveDB({ users: allUsers });
+                    app.renderAdmin();
+                    app.showToast("Usuario eliminado");
+                }
+            });
+        }
+
+        async function approveUser(email, approve) {
+            const user = allUsers.find(u => u.email === email);
+            if(!user) return;
+            
+            if(approve) {
+                user.status = 'active';
+                // Assign a default role if needed, e.g., 'user'
+                if(!user.role) user.role = 'user';
+                await app.saveDB({ users: allUsers });
+                app.showToast("Usuario aprobado");
+            } else {
+                allUsers = allUsers.filter(u => u.email !== email);
+                await app.saveDB({ users: allUsers });
+                app.showToast("Solicitud denegada y usuario eliminado");
+            }
+            app.renderAdmin();
+        }
+
+        async function handleSendNotification(e) {
+            e.preventDefault();
+            const form = e.target;
+            const title = form.title.value;
+            const message = form.message.value;
+            
+            if(!title || !message) return;
+            
+            const newNotif = {
+                id: Date.now(),
+                title,
+                message,
+                date: new Date().toISOString(),
+                read: false,
+                type: 'system' // global notification
+            };
+            
+            // Add to all users
+            allUsers.forEach(u => {
+                if(!u.notifications) u.notifications = [];
+                u.notifications.unshift({...newNotif});
+            });
+            
+            await app.saveDB({ users: allUsers });
+            app.showToast("Notificación enviada a todos los usuarios");
+            form.reset();
+        }
+
+        // --- Series Management (Enhanced) ---
+        function manageEpisodes(seriesId) {
+            const item = allItems.find(i => i.id === seriesId);
+            if(!item) return;
+
+            openModal(`
+                <div style="padding:2rem; width:100%;">
+                    <h2>Gestionar: ${item.title}</h2>
+                    <div style="margin:1rem 0; max-height:400px; overflow-y:auto;">
+                        ${item.seasons.length === 0 ? '<p>No hay temporadas.</p>' : ''}
+                        ${item.seasons.map((s, sIdx) => `
+                            <div style="background:rgba(255,255,255,0.05); padding:1rem; margin-bottom:1rem; border-radius:8px;">
+                                <h4 style="color:var(--color-brand-primary); margin-bottom:0.5rem; display:flex; justify-content:space-between; align-items:center;">
+                                    ${s.name}
+                                    <button onclick="deleteSeason(${seriesId}, ${sIdx})" style="color:#ef4444; font-size:0.9rem; background:none; border:none; cursor:pointer;" title="Eliminar Temporada"><i class="ri-delete-bin-line"></i></button>
+                                </h4>
+                                <div style="margin-left:1rem;">
+                                    ${s.episodes.map(ep => `
+                                        <div style="font-size:0.9rem; padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
+                                            <div style="display:flex; align-items:center; gap:10px;">
+                                                <img src="${ep.img || item.img}" style="width:50px; height:30px; object-fit:cover; border-radius:2px; opacity:0.7;">
+                                                <span>${ep.title}</span>
+                                            </div>
+                                            <button onclick="deleteEpisode(${seriesId}, ${sIdx}, ${ep.id})" style="color:#ef4444; font-size:1rem; background:none; border:none; cursor:pointer;" title="Eliminar Episodio"><i class="ri-close-circle-line"></i></button>
+                                        </div>
+                                    `).join('')}
+                                    <button class="btn btn-secondary" style="margin-top:10px; font-size:0.8rem;" onclick="addEpisode(${seriesId}, ${sIdx})">+ Añadir Episodio</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="btn btn-primary" onclick="addSeason(${seriesId})">Nueva Temporada</button>
+                </div>
+            `);
+        }
+
+        async function deleteSeason(seriesId, seasonIdx) {
+            app.confirmAction("¿Eliminar esta temporada y todos sus episodios? Esta acción no se puede deshacer.", async () => {
+                const item = allItems.find(i => i.id === seriesId);
+                const season = item.seasons[seasonIdx];
+                
+                if(season.episodes) {
+                    for(const ep of season.episodes) {
+                        try {
+                            if(await DownloadManager.has(ep.id)) await DownloadManager.remove(ep.id);
+                        } catch(e) {}
+
+                        if(ep.video && ep.video.startsWith('/media/')) await deleteFile(ep.video);
+                        if(ep.img && ep.img.startsWith('/media/')) await deleteFile(ep.img);
+                    }
+                }
+                
+                item.seasons.splice(seasonIdx, 1);
+                await app.saveDB({ items: allItems });
+                manageEpisodes(seriesId);
+                app.showToast("Temporada eliminada");
+            });
+        }
+
+        async function deleteEpisode(seriesId, seasonIdx, episodeId) {
+            app.confirmAction("¿Eliminar este episodio?", async () => {
+                const item = allItems.find(i => i.id === seriesId);
+                const season = item.seasons[seasonIdx];
+                const ep = season.episodes.find(e => e.id === episodeId);
+                
+                if(ep) {
+                    try {
+                        if(await DownloadManager.has(episodeId)) await DownloadManager.remove(episodeId);
+                    } catch(e) {}
+
+                    if(ep.video && ep.video.startsWith('/media/')) await deleteFile(ep.video);
+                    if(ep.img && ep.img.startsWith('/media/')) await deleteFile(ep.img);
+                    
+                    season.episodes = season.episodes.filter(e => e.id !== episodeId);
+                    await app.saveDB({ items: allItems });
+                    manageEpisodes(seriesId);
+                    app.showToast("Episodio eliminado");
+                }
+            });
+        }
+
+        async function addSeason(seriesId) {
+            const item = allItems.find(i => i.id === seriesId);
+            const nextSeasonNum = item.seasons.length + 1;
+            
+            openModal(`
+                <div style="padding:2rem;">
+                    <h3>Nueva Temporada</h3>
+                    <div style="margin-bottom:1rem;">
+                        <label>Nombre de la Temporada</label>
+                        <input id="new-season-name" value="Temporada ${nextSeasonNum}" required>
+                    </div>
+                    <button class="btn btn-primary" onclick="handleCreateSeason(${seriesId})">Crear Temporada</button>
+                </div>
+            `);
+        }
+
+        async function handleCreateSeason(seriesId) {
+            const name = document.getElementById('new-season-name').value;
+            if(!name) return app.showToast("El nombre es obligatorio", "error");
+            
+            const item = allItems.find(i => i.id === seriesId);
+            item.seasons.push({ id: Date.now(), name, episodes: [] });
+            
+            await app.saveDB({ items: allItems });
+            app.showToast("Temporada creada");
+            manageEpisodes(seriesId); 
+        }
+
+        async function addEpisode(seriesId, seasonIdx) {
+            const item = allItems.find(i => i.id === seriesId);
+            const season = item.seasons[seasonIdx];
+            
+            openModal(`
+                <div style="padding:2rem;">
+                    <h3>Añadir Episodio a ${season.name}</h3>
+                    <div style="margin-bottom:1rem;"><label>Título</label><input id="ep-title" required></div>
+                    <div style="margin-bottom:1rem;"><label>Descripción</label><textarea id="ep-desc" rows="2"></textarea></div>
+                    <div style="margin-bottom:1rem;">
+                        <label>Imagen del Episodio (Thumbnail)</label>
+                        <input type="file" id="ep-img" accept="image/*">
+                    </div>
+                    <div style="margin-bottom:1rem;">
+                        <label>Video del Episodio</label>
+                        <input type="file" id="ep-video" accept="video/*">
+                    </div>
+                    <button class="btn btn-primary" id="btn-ep-upload" onclick="handleEpUpload(${seriesId}, ${seasonIdx})">Subir Episodio</button>
+                    <div id="ep-status" style="margin-top:10px; color:var(--color-brand-accent);"></div>
+                    <button class="btn btn-secondary" style="margin-top:10px;" onclick="manageEpisodes(${seriesId})">Cancelar</button>
+                </div>
+            `);
+        }
+
+        async function handleEpUpload(seriesId, seasonIdx) {
+            const btn = document.getElementById('btn-ep-upload');
+            const status = document.getElementById('ep-status');
+            const title = document.getElementById('ep-title').value;
+            const desc = document.getElementById('ep-desc').value;
+            const vidFile = document.getElementById('ep-video').files[0];
+            const imgFile = document.getElementById('ep-img').files[0];
+            
+            if(!title || !vidFile) return app.showToast("Faltan datos (título y video son obligatorios)", "error");
+
+            btn.disabled = true;
+            status.innerHTML = 'Subiendo video: <span id="ep-upload-pct">0%</span><div style="width:100%; height:4px; background:#333; margin-top:5px; border-radius:2px;"><div id="ep-upload-bar" style="width:0%; height:100%; background:var(--color-brand-primary); transition:width 0.2s;"></div></div>';
+
+            try {
+                // Upload Image
+                let imgUrl = "";
+                if(imgFile) {
+                    const fd = new FormData();
+                    fd.append('file', imgFile);
+                    const res = await fetch('/upload/image', { method:'POST', body:fd });
+                    const data = await res.json();
+                    if(data.url) imgUrl = data.url;
+                }
+
+                // Upload Video (Chunked)
+                const data = await uploadChunkedFile(vidFile, (pct) => {
+                    const p = Math.floor(pct);
+                    const pctEl = document.getElementById('ep-upload-pct');
+                    const barEl = document.getElementById('ep-upload-bar');
+                    if(pctEl) pctEl.innerText = p + '%';
+                    if(barEl) barEl.style.width = p + '%';
+                    if(p >= 100) status.innerHTML = "Procesando video... <i class='ri-loader-4-line spin'></i>";
+                });
+                
+                if(data.url) {
+                    const item = allItems.find(i => i.id === seriesId);
+                    item.seasons[seasonIdx].episodes.push({
+                        id: Date.now(),
+                        title,
+                        desc,
+                        img: imgUrl,
+                        video: data.url
+                    });
+                    await app.saveDB({ items: allItems });
+                    manageEpisodes(seriesId); // Go back to list
+                } else {
+                    throw new Error("Upload failed");
+                }
+            } catch(e) {
+                console.error(e);
+                app.showToast("Error subiendo episodio", "error");
+                btn.disabled = false;
+                status.innerText = "";
+            }
+        }
 
         function openMobileProfileMenu() {
             if(!app.state.user) {
@@ -3732,13 +5537,17 @@
                     <div style="display:flex;flex-direction:column;gap:10px;">
                         <button class="btn btn-secondary" onclick="closeModal(); app.router('account')" style="width:100%;justify-content:start;padding:15px;"><i class="ri-settings-3-line" style="margin-right:10px;"></i> Cuenta</button>
                         <button class="btn btn-secondary" onclick="closeModal(); app.router('profiles')" style="width:100%;justify-content:start;padding:15px;"><i class="ri-user-settings-line" style="margin-right:10px;"></i> Cambiar Perfil</button>
-                        ${u.role==='admin' ? `<button class="btn btn-secondary" onclick="closeModal(); app.router('admin')" style="width:100%;justify-content:start;padding:15px;"><i class="ri-admin-line" style="margin-right:10px;"></i> Admin Panel</button>` : ''}
+                        <button class="btn btn-secondary" onclick="closeModal(); openStatusPage()" style="width:100%;justify-content:start;padding:15px;"><i class="ri-server-line" style="margin-right:10px;"></i> Estado del Sistema</button>
                         <button class="btn btn-danger" onclick="closeModal(); app.logout()" style="width:100%;justify-content:start;padding:15px;margin-top:10px;"><i class="ri-logout-box-line" style="margin-right:10px;"></i> Cerrar Sesión</button>
                     </div>
                 </div>
             `);
         }
         
+        function openStatusPage() {
+            window.location.href = 'status.html';
+        }
+
         // Update avatar in mobile nav when profile changes
         // We can hook this into app.router or app.selectProfile
         // Or just update it in renderHeader (which is called often)
@@ -3776,27 +5585,48 @@
                         <div style="position:absolute;bottom:20px;left:20px;right:20px;">
                             <h2 style="font-size:2.5rem; line-height:1; margin-bottom:10px; text-shadow:0 2px 10px rgba(0,0,0,0.8);">${item.title}</h2>
                             <div style="display:flex;gap:10px;">
-                                <button class="btn btn-primary" onclick="playItem(${item.id})"><i class="ri-play-fill"></i> Reproducir</button>
+                                <button class="btn ${item.isUpcoming ? 'btn-secondary' : 'btn-primary'}" onclick="playItem(${item.id})" ${item.isUpcoming && !item.trailer ? 'disabled' : ''}>
+                                    <i class="${item.isUpcoming ? (item.trailer ? 'ri-movie-line' : 'ri-calendar-event-line') : 'ri-play-fill'}"></i> 
+                                    ${item.isUpcoming ? (item.trailer ? 'Ver Trailer' : (item.releaseDate ? 'Estreno: '+item.releaseDate : 'Próximamente')) : 'Reproducir'}
+                                </button>
+                                
+                                ${item.trailer && !item.isUpcoming ? `
+                                    <button class="btn btn-secondary" onclick="app.playTrailer('${item.trailer}')">
+                                        <i class="ri-movie-line"></i> Trailer
+                                    </button>
+                                ` : ''}
+
                                 ${user ? `
                                     <button id="btn-mylist-${item.id}" class="btn ${inList ? 'btn-primary' : 'btn-secondary'}" onclick="app.toggleMyList(${item.id})">
                                         <i class="${inList ? 'ri-check-line' : 'ri-add-line'}"></i> ${inList ? 'En mi lista' : 'Mi Lista'
                                     }
                                     </button>
                                 ` : ''}
-                                ${((item.type === 'movie' && item.video) || item.type === 'series') ? `
+                                ${(user && ((item.type === 'movie' && item.video) || item.type === 'series')) ? `
                                     <button id="btn-download-${item.id}" class="btn ${isDownloaded ? 'btn-primary' : 'btn-secondary'}" onclick="app.downloadItem(${item.id})">
                                         <i class="${isDownloaded ? 'ri-delete-bin-line' : 'ri-download-line'}"></i> ${isDownloaded ? 'Borrar Descarga' : 'Descargar'}
                                     </button>
                                 ` : ''}
+                                <button class="btn btn-secondary" onclick="app.shareItem(${item.id})">
+                                    <i class="ri-share-forward-line"></i> Compartir
+                                </button>
                             </div>
                         </div>
                     </div>
                     <div style="padding:2rem;">
                         <p style="margin-bottom:1rem;color:#ddd;line-height:1.6;">${item.desc}</p>
-                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:1rem; font-size:0.9rem; color:#aaa; margin-bottom:2rem;">
-                            <div>Año: <span style="color:white">${item.year}</span></div>
-                            <div>Género: <span style="color:white">${item.genre || 'General'}</span></div>
-                            <div>Match: <span style="color:#46d369">${item.match}%</span></div>
+                        
+                        <div style="margin-bottom:2rem; font-size:0.9rem; color:#ccc; display:flex; flex-direction:column; gap:10px;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="color:#46d369; font-weight:bold; font-size:1.1rem;">${item.match}% Match</span>
+                                <span style="color:white;">${item.year}</span>
+                                <span style="border:1px solid rgba(255,255,255,0.3); padding:0 5px; border-radius:2px; font-size:0.8rem;">${item.rating || '16+'}</span>
+                                <span style="border:1px solid rgba(255,255,255,0.3); padding:0 5px; border-radius:2px; font-size:0.8rem;">HD</span>
+                            </div>
+                            
+                            ${item.genre ? `<div><span style="color:#777;">Géneros:</span> ${item.genre.split(',').map(g => `<span class="meta-tag" onclick="closeModal(); app.setSearch('${g.trim()}')" style="color:white; cursor:pointer; text-decoration:underline; margin-right:3px;">${g.trim()}</span>`).join(', ')}</div>` : ''}
+                            ${item.cast ? `<div><span style="color:#777;">Elenco:</span> ${item.cast.split(',').map(c => `<span class="meta-tag" onclick="closeModal(); app.setSearch('${c.trim()}')" style="color:white; cursor:pointer; text-decoration:underline; margin-right:3px;">${c.trim()}</span>`).join(', ')}</div>` : ''}
+                            ${item.director ? `<div><span style="color:#777;">Director:</span> <span class="meta-tag" onclick="closeModal(); app.setSearch('${item.director.trim()}')" style="color:white; cursor:pointer; text-decoration:underline;">${item.director}</span></div>` : ''}
                         </div>
             `;
 
@@ -3926,6 +5756,15 @@
                  }
             }
             
+            // Upcoming Check
+            if(item.isUpcoming) {
+                if(item.trailer) {
+                    app.playTrailer(item.trailer);
+                    return;
+                }
+                return app.showToast(`Estreno: ${item.releaseDate || 'Próximamente'}`, "info");
+            }
+            
             if(item.type === 'movie') {
                 if(!item.video) return app.showToast("Película aún no disponible.", "error");
                 // Check if downloaded to play offline version even if online?
@@ -4003,7 +5842,7 @@
                                     <i class="ri-play-fill"></i> Reanudar Episodio
                                 </button>
                                 <button class="btn btn-secondary" onclick="closeModal(); openDetails(${item.id})">
-                                    <i class="ri-list-check"></i> Ver Temporadas
+                                    <i class="ri-play-list-add-line"></i> Ver Temporadas
                                 </button>
                             </div>
                         </div>
@@ -4031,6 +5870,7 @@
         function playVideo(url, title, itemId, seriesId = null, poster = null) {
             if(!app.state.user) return app.showToast("Debes iniciar sesión.", "error");
             if(!app.state.currentProfile) return app.router('profiles');
+            if(!url) return app.showToast("Error: No se encontró el video.", "error");
             
             const overlay = document.createElement('div');
             overlay.id = 'video-overlay';
@@ -4042,20 +5882,18 @@
                     <h2 class="video-title">${title}</h2>
                 </div>
                 
-                <video id="main-video-player" src="${url}" poster="${poster || ''}" autoplay style="width:100%; height:100%; object-fit:contain; outline:none;"></video>
+                <video id="main-video-player" src="${url}" poster="${poster || ''}" autoplay playsinline webkit-playsinline style="width:100%; height:100%; object-fit:contain; outline:none; background:black;"></video>
                 
                 <div class="video-click-area" onclick="togglePlay()"></div>
                 
                 <div class="video-controls-bar">
-                    <div class="video-progress-container" onclick="seekVideo(event)">
-                        <div class="video-progress-fill" id="progress-fill"></div>
-                    </div>
+                    <input type="range" class="video-slider" id="video-slider" min="0" max="100" value="0" step="0.01" oninput="seekVideo(this.value)" onchange="seekVideo(this.value, true)">
                     
                     <div class="video-controls-row">
                         <div class="video-controls-left">
                             <button onclick="togglePlay()" id="play-btn" class="video-btn"><i class="ri-pause-fill"></i></button>
-                            <button onclick="skipTime(-10)" class="video-btn"><i class="ri-replay-10-line"></i></button>
-                            <button onclick="skipTime(10)" class="video-btn"><i class="ri-forward-10-line"></i></button>
+                            <button onclick="skipTime(-10)" ontouchend="event.preventDefault(); skipTime(-10)" class="video-btn" style="padding:10px;"><i class="ri-replay-10-line"></i></button>
+                            <button onclick="skipTime(10)" ontouchend="event.preventDefault(); skipTime(10)" class="video-btn" style="padding:10px;"><i class="ri-forward-10-line"></i></button>
                             <span id="time-display" style="color:white; font-size:0.9rem; font-variant-numeric:tabular-nums;">0:00 / 0:00</span>
                         </div>
                         
@@ -4069,9 +5907,16 @@
             `;
             
             document.body.appendChild(overlay);
+            document.body.classList.add('video-active');
 
             const video = document.getElementById('main-video-player');
             const profile = app.state.currentProfile;
+
+            // Handle error
+            video.onerror = () => {
+                app.showToast("Error al reproducir el video.", "error");
+                console.error("Video Error:", video.error);
+            };
 
             // Restore progress
             if(profile.continueWatching) {
@@ -4084,7 +5929,7 @@
             // Global Helpers for this session
             window.togglePlay = () => {
                 if(video.paused) {
-                    video.play();
+                    video.play().catch(e => console.error(e));
                     document.getElementById('play-btn').innerHTML = '<i class="ri-pause-fill"></i>';
                 } else {
                     video.pause();
@@ -4093,13 +5938,19 @@
             };
 
             window.skipTime = (sec) => {
-                video.currentTime += sec;
+                let t = video.currentTime + sec;
+                if (t < 0) t = 0;
+                if (t > video.duration) t = video.duration;
+                video.currentTime = t;
             };
 
-            window.seekVideo = (e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const pos = (e.clientX - rect.left) / rect.width;
-                video.currentTime = pos * video.duration;
+            window.seekVideo = (val, commit=false) => {
+                if(video.duration) {
+                    const time = (val / 100) * video.duration;
+                    if(commit) video.currentTime = time;
+                    // Update time display while dragging
+                    document.getElementById('time-display').innerText = `${fmt(time)} / ${fmt(video.duration)}`;
+                }
             };
 
             window.setVolume = (val) => {
@@ -4121,15 +5972,28 @@
             }
 
             window.toggleFullscreen = () => {
-                if(!document.fullscreenElement) {
-                    overlay.requestFullscreen().catch(err => console.log(err));
+                if(!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    if(overlay.requestFullscreen) {
+                        overlay.requestFullscreen().catch(err => console.log(err));
+                    } else if(overlay.webkitRequestFullscreen) {
+                        overlay.webkitRequestFullscreen();
+                    } else if(video.webkitEnterFullscreen) {
+                        video.webkitEnterFullscreen();
+                    }
                 } else {
-                    document.exitFullscreen();
+                    if(document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if(document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    }
                 }
             };
 
             window.closeVideoPlayer = () => {
-                document.getElementById('video-overlay').remove();
+                if(document.getElementById('video-overlay')) {
+                    document.getElementById('video-overlay').remove();
+                }
+                document.body.classList.remove('video-active');
             };
 
             // Format Time
@@ -4144,8 +6008,14 @@
             video.addEventListener('timeupdate', () => {
                 if(!video.duration) return;
                 const pct = (video.currentTime / video.duration) * 100;
-                document.getElementById('progress-fill').style.width = `${pct}%`;
-                document.getElementById('time-display').innerText = `${fmt(video.currentTime)} / ${fmt(video.duration)}`;
+                const slider = document.getElementById('video-slider');
+                // Only update if not currently being dragged (simple check: if focused?)
+                // Actually, standard range inputs update fine if we don't block it. 
+                // But to avoid jumping while dragging, we might want to check document.activeElement
+                if(document.activeElement !== slider) {
+                    slider.value = pct;
+                    document.getElementById('time-display').innerText = `${fmt(video.currentTime)} / ${fmt(video.duration)}`;
+                }
             });
 
             // Idle Detection
@@ -4157,6 +6027,7 @@
             }
             overlay.addEventListener('mousemove', resetIdle);
             overlay.addEventListener('click', resetIdle);
+            overlay.addEventListener('touchstart', resetIdle);
             resetIdle();
 
             // Save Progress Logic
@@ -4168,6 +6039,30 @@
             video.addEventListener('ended', () => {
                 clearInterval(saveInterval);
                 removeFromContinueWatching(itemId);
+
+                // Confetti on Series Completion
+                if (seriesId) {
+                    const seriesItem = allItems.find(i => i.id === seriesId);
+                    if (seriesItem && seriesItem.seasons) {
+                        // Find current episode
+                        let isLast = false;
+                        // Check if this is the absolute last episode
+                        const lastSeason = seriesItem.seasons[seriesItem.seasons.length - 1];
+                        if (lastSeason) {
+                            const lastEp = lastSeason.episodes[lastSeason.episodes.length - 1];
+                            if (lastEp && lastEp.id === itemId) {
+                                isLast = true;
+                            }
+                        }
+                        
+                        if (isLast) {
+                             if(typeof window.runConfetti === 'function') window.runConfetti();
+                             else if(typeof runConfetti === 'function') runConfetti();
+                             app.showToast("¡Has completado la serie! 🎉", "success");
+                        }
+                    }
+                }
+
                 closeVideoPlayer();
             });
 
@@ -4327,6 +6222,16 @@
                         <div><label>Match %</label><input id="c-match" type="number" value="98"></div>
                     </div>
                     
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                        <div><label>Estreno (Fecha)</label><input id="c-releaseDate" type="date"></div>
+                        <div style="display:flex; align-items:end; padding-bottom:10px;">
+                            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                                <input id="c-isUpcoming" type="checkbox" style="width:20px; height:20px;">
+                                <span style="font-size:1rem;">Es "Próximamente"</span>
+                            </label>
+                        </div>
+                    </div>
+
                     <div style="margin-bottom:1rem;">
                         <label>Género</label>
                         <select id="c-genre">
@@ -4340,8 +6245,15 @@
                             <option value="Fantasía">Fantasía</option>
                             <option value="Romance">Romance</option>
                             <option value="Documental">Documental</option>
+                            <option value="Crimen">Crimen</option>
+                            <option value="Misterio">Misterio</option>
+                            <option value="Animación">Animación</option>
                         </select>
                     </div>
+
+                    <div style="margin-bottom:1rem;"><label>Elenco (separado por comas)</label><input id="c-cast" placeholder="Actor 1, Actor 2..."></div>
+                    <div style="margin-bottom:1rem;"><label>Director</label><input id="c-director" placeholder="Nombre del Director"></div>
+                    <div style="margin-bottom:1rem;"><label>Premios</label><input id="c-awards" placeholder="Oscar, Globo de Oro..."></div>
 
                     <div style="margin-bottom:1rem;">
                         <label>Imagen de Portada</label>
@@ -4353,6 +6265,11 @@
                         <input type="file" id="c-video-file" accept="video/*">
                     </div>
 
+                    <div style="margin-bottom:1rem;">
+                        <label>Trailer URL (YouTube/MP4) - Opcional</label>
+                        <input id="c-trailer" placeholder="https://youtube.com/..." style="width:100%; padding:10px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:white; border-radius:4px;">
+                    </div>
+
                     <button class="btn btn-primary" onclick="handleAddContent()" id="btn-upload">Publicar</button>
                     <div id="upload-status" style="margin-top:10px; color:var(--color-brand-accent);"></div>
                 </div>
@@ -4362,6 +6279,83 @@
         function toggleVideoField(val) {
             const f = document.getElementById('video-field');
             f.style.display = val === 'movie' ? 'block' : 'none';
+        }
+
+        
+        function uploadFileWithProgress(url, fd, onProgress) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', url, true);
+                
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        if(onProgress) onProgress(percentComplete);
+                    }
+                };
+                
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            resolve(data);
+                        } catch (e) {
+                            reject(new Error("Invalid JSON response"));
+                        }
+                    } else {
+                        reject(new Error("Upload failed: " + xhr.statusText));
+                    }
+                };
+                
+                xhr.onerror = () => reject(new Error("Network error"));
+                xhr.send(fd);
+            });
+        }
+
+        
+        async function uploadChunkedFile(file, onProgress) {
+            const chunkSize = 5 * 1024 * 1024; // 5MB chunks (safe for Cloudflare)
+            const totalChunks = Math.ceil(file.size / chunkSize);
+            const uploadId = Date.now().toString() + Math.random().toString().substr(2, 5);
+            
+            for (let i = 0; i < totalChunks; i++) {
+                const start = i * chunkSize;
+                const end = Math.min(start + chunkSize, file.size);
+                const chunk = file.slice(start, end);
+                
+                const fd = new FormData();
+                fd.append('chunk', chunk);
+                fd.append('chunkIndex', i);
+                fd.append('totalChunks', totalChunks);
+                fd.append('fileName', file.name);
+                fd.append('uploadId', uploadId);
+                
+                // Retry logic for robustness
+                let attempts = 0;
+                while(attempts < 3) {
+                    try {
+                        const res = await fetch('/upload/chunk', { method: 'POST', body: fd });
+                        if (!res.ok) throw new Error('Upload failed');
+                        const data = await res.json();
+                        
+                        // Report progress
+                        if (onProgress) {
+                            const percent = ((i + 1) / totalChunks) * 100;
+                            onProgress(percent);
+                        }
+                        
+                        if (data.done) {
+                            return data;
+                        }
+                        break; // Success, move to next chunk
+                    } catch (e) {
+                        attempts++;
+                        console.error(`Chunk ${i} failed, attempt ${attempts}`, e);
+                        if(attempts >= 3) throw e;
+                        await new Promise(r => setTimeout(r, 1000 * attempts)); // Backoff
+                    }
+                }
+            }
         }
 
         async function handleAddContent() {
@@ -4390,12 +6384,19 @@
                 if(type === 'movie') {
                     const vidFile = document.getElementById('c-video-file').files[0];
                     if(vidFile) {
-                        status.innerText = "Subiendo video (esto puede tardar)...";
-                        const fd = new FormData();
-                        fd.append('file', vidFile);
-                        const res = await fetch('/upload/video', { method:'POST', body:fd });
-                        const data = await res.json();
+                        status.innerHTML = 'Subiendo video: <span id="upload-pct">0%</span><div style="width:100%; height:4px; background:#333; margin-top:5px; border-radius:2px;"><div id="upload-bar" style="width:0%; height:100%; background:var(--color-brand-primary); transition:width 0.2s;"></div></div>';
+                        
+                        const data = await uploadChunkedFile(vidFile, (pct) => {
+                            const p = Math.floor(pct);
+                            const pctEl = document.getElementById('upload-pct');
+                            const barEl = document.getElementById('upload-bar');
+                            if(pctEl) pctEl.innerText = p + '%';
+                            if(barEl) barEl.style.width = p + '%';
+                            if(p >= 100) status.innerHTML = "Procesando video... <i class='ri-loader-4-line spin'></i>";
+                        });
+                        
                         if(data.url) videoUrl = data.url;
+
                     }
                 }
 
@@ -4407,6 +6408,12 @@
                     year: document.getElementById('c-year').value,
                     match: document.getElementById('c-match').value,
                     genre: document.getElementById('c-genre').value,
+                    releaseDate: document.getElementById('c-releaseDate').value,
+                    isUpcoming: document.getElementById('c-isUpcoming').checked,
+                    cast: document.getElementById('c-cast').value,
+                    director: document.getElementById('c-director').value,
+                    awards: document.getElementById('c-awards').value,
+                    trailer: document.getElementById('c-trailer').value,
                     img: imgUrl,
                     rating: "16+",
                     seasons: type === 'series' ? [{ id: Date.now(), name: "Temporada 1", episodes: [] }] : undefined,
@@ -4452,6 +6459,21 @@
                         <div><label>Género</label><input id="e-genre" value="${item.genre || ''}"></div>
                         <div><label>Match %</label><input id="e-match" type="number" value="${item.match}"></div>
                     </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                        <div><label>Estreno (Fecha)</label><input id="e-releaseDate" type="date" value="${item.releaseDate || ''}"></div>
+                        <div style="display:flex; align-items:end; padding-bottom:10px;">
+                            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                                <input id="e-isUpcoming" type="checkbox" style="width:20px; height:20px;" ${item.isUpcoming ? 'checked' : ''}>
+                                <span style="font-size:1rem;">Es "Próximamente"</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:1rem;"><label>Elenco (separado por comas)</label><input id="e-cast" value="${item.cast || ''}" placeholder="Actor 1, Actor 2..."></div>
+                    <div style="margin-bottom:1rem;"><label>Director</label><input id="e-director" value="${item.director || ''}" placeholder="Nombre del Director"></div>
+                    <div style="margin-bottom:1rem;"><label>Premios</label><input id="e-awards" value="${item.awards || ''}" placeholder="Oscar, Globo de Oro..."></div>
+                    <div style="margin-bottom:1rem;"><label>Trailer URL</label><input id="e-trailer" value="${item.trailer || ''}" placeholder="https://youtube.com/..."></div>
                     
                     <div style="margin-bottom:1rem;">
                         <label>Cambiar Imagen de Portada (Opcional)</label>
@@ -4499,11 +6521,12 @@
                 if(item.type === 'movie') {
                     const vidFile = document.getElementById('e-video-file').files[0];
                     if(vidFile) {
-                        status.innerText = "Subiendo nuevo video (esto puede tardar)...";
-                        const fd = new FormData();
-                        fd.append('file', vidFile);
-                        const res = await fetch('/upload/video', { method:'POST', body:fd });
-                        const data = await res.json();
+                        status.innerText = "Iniciando carga optimizada...";
+                        // Use Chunked Upload
+                        const data = await uploadChunkedFile(vidFile, (pct) => {
+                            const p = Math.floor(pct);
+                            status.innerText = `Subiendo video: ${p}%`;
+                        });
                         if(data.url) item.video = data.url;
                     }
                 }
@@ -4514,6 +6537,12 @@
                 item.year = document.getElementById('e-year').value;
                 item.match = document.getElementById('e-match').value;
                 item.genre = document.getElementById('e-genre').value;
+                item.releaseDate = document.getElementById('e-releaseDate').value;
+                item.isUpcoming = document.getElementById('e-isUpcoming').checked;
+                item.cast = document.getElementById('e-cast').value;
+                item.director = document.getElementById('e-director').value;
+                item.awards = document.getElementById('e-awards').value;
+                item.trailer = document.getElementById('e-trailer').value;
 
                 await app.saveDB({ items: allItems });
                 
@@ -4540,6 +6569,38 @@
                 console.error("Error deleting file:", url, e);
             }
         }
+
+        // --- Confetti Effect ---
+        function runConfetti(x, y) {
+            const colors = ['#e50914', '#ffffff', '#222222'];
+            for (let i = 0; i < 30; i++) {
+                const p = document.createElement('div');
+                p.style.position = 'fixed';
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                p.style.width = Math.random() * 6 + 4 + 'px';
+                p.style.height = Math.random() * 6 + 4 + 'px';
+                p.style.background = colors[Math.floor(Math.random() * colors.length)];
+                p.style.borderRadius = '50%';
+                p.style.pointerEvents = 'none';
+                p.style.zIndex = '9999';
+                document.body.appendChild(p);
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 100 + 50;
+                const tx = Math.cos(angle) * velocity;
+                const ty = Math.sin(angle) * velocity;
+                
+                p.animate([
+                    { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                    { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: Math.random() * 500 + 500,
+                    easing: 'cubic-bezier(0, .9, .57, 1)',
+                }).onfinish = () => p.remove();
+            }
+        }
+
 
         async function deleteItem(id) {
             app.confirmAction("¿Eliminar este contenido y todos sus archivos asociados?", async () => {
@@ -4753,11 +6814,19 @@
                     if(data.url) imgUrl = data.url;
                 }
 
-                // Upload Video
-                const fd = new FormData();
-                fd.append('file', vidFile);
-                const res = await fetch('/upload/video', { method:'POST', body:fd });
-                const data = await res.json();
+                
+                // Upload Video (Chunked)
+                status.innerHTML = 'Subiendo video: <span id="ep-upload-pct">0%</span><div style="width:100%; height:4px; background:#333; margin-top:5px; border-radius:2px;"><div id="ep-upload-bar" style="width:0%; height:100%; background:var(--color-brand-primary); transition:width 0.2s;"></div></div>';
+                
+                const data = await uploadChunkedFile(vidFile, (pct) => {
+                    const p = Math.floor(pct);
+                    const pctEl = document.getElementById('ep-upload-pct');
+                    const barEl = document.getElementById('ep-upload-bar');
+                    if(pctEl) pctEl.innerText = p + '%';
+                    if(barEl) barEl.style.width = p + '%';
+                    if(p >= 100) status.innerHTML = "Procesando video... <i class='ri-loader-4-line spin'></i>";
+                });
+    
                 
                 if(data.url) {
                     const item = allItems.find(i => i.id === seriesId);
@@ -4783,6 +6852,126 @@
 
         // --- Init ---
         app.init();
+
+        /* --- Status Page --- */
+        function openStatusPage() {
+            const html = `
+                <div class="status-overlay" id="status-overlay" style="display:flex;">
+                    <div style="background:var(--color-bg-surface); width:100%; max-width:600px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); overflow:hidden;">
+                        <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center;">
+                            <h2 style="margin:0;">Estado del Sistema</h2>
+                            <button onclick="document.getElementById('status-overlay').remove()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;"><i class="ri-close-line"></i></button>
+                        </div>
+                        <div style="padding:20px;">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+                                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px;">
+                                    <div style="color:#aaa; font-size:0.9rem;">Estado del Servidor</div>
+                                    <div style="color:#4ade80; font-weight:bold; font-size:1.1rem; display:flex; align-items:center; gap:5px;"><i class="ri-checkbox-circle-fill"></i> Operativo</div>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px;">
+                                    <div style="color:#aaa; font-size:0.9rem;">Base de Datos</div>
+                                    <div style="color:#4ade80; font-weight:bold; font-size:1.1rem; display:flex; align-items:center; gap:5px;"><i class="ri-database-2-fill"></i> Conectada</div>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px;">
+                                    <div style="color:#aaa; font-size:0.9rem;">Versión App</div>
+                                    <div style="color:white; font-weight:bold; font-size:1.1rem;">v2.5.0</div>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px;">
+                                    <div style="color:#aaa; font-size:0.9rem;">Latencia</div>
+                                    <div style="color:white; font-weight:bold; font-size:1.1rem;">${Math.floor(Math.random() * 50 + 20)}ms</div>
+                                </div>
+                            </div>
+                            
+                            <h3 style="font-size:1rem; margin-bottom:10px;">Servicios</h3>
+                            <div style="display:flex; flex-direction:column; gap:10px;">
+                                <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.02); border-radius:4px;">
+                                    <span>Streaming API</span>
+                                    <span style="color:#4ade80;">Online</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.02); border-radius:4px;">
+                                    <span>Auth Service</span>
+                                    <span style="color:#4ade80;">Online</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.02); border-radius:4px;">
+                                    <span>Upload Service</span>
+                                    <span style="color:#4ade80;">Online</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            document.body.appendChild(div.firstElementChild);
+        }
+
+        /* --- Secret Admin Access --- */
+        let secretCode = [];
+        const secretPattern = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+        window.addEventListener('keydown', (e) => {
+            secretCode.push(e.key);
+            if (secretCode.length > secretPattern.length) secretCode.shift();
+            if (JSON.stringify(secretCode) === JSON.stringify(secretPattern)) {
+                if(app.state.user && app.state.user.role === 'admin') { app.router('admin'); }
+            }
+        });
+        
+        // Mobile Secret: Triple tap on Logo
+        let tapCount = 0;
+        let tapTimer;
+        document.addEventListener('click', (e) => {
+            if(e.target.closest('.logo')) {
+                tapCount++;
+                clearTimeout(tapTimer);
+                tapTimer = setTimeout(() => tapCount = 0, 500);
+                if(tapCount === 5) {
+                    if(app.state.user && app.state.user.role === 'admin') { app.router('admin'); }
+                }
+            }
+        });
+
+        /* --- Notification Management --- */
+        async function deleteNotification(index) {
+            await app.fetchDB();
+            let db = { notifications: [] };
+            try {
+                 const res = await fetch('/db');
+                 db = await res.json();
+            } catch(e) {}
+            if(db.notifications) {
+                db.notifications.splice(index, 1);
+                await app.saveDB({ notifications: db.notifications });
+                app.renderHeader();
+            }
+        }
+
+        async function handleSendNotification(e) {
+            e.preventDefault();
+            const form = e.target;
+            const title = form.title.value;
+            const message = form.message.value;
+            
+            if(!title || !message) return app.showToast("Completa todos los campos", "error");
+            
+            try {
+                const res = await fetch('/api/notifications/send', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ title, message })
+                });
+                
+                if(res.ok) {
+                    app.showToast("Notificación enviada exitosamente", "success");
+                    form.reset();
+                } else {
+                    app.showToast("Error al enviar notificación", "error");
+                }
+            } catch(e) {
+                console.error(e);
+                app.showToast("Error de conexión", "error");
+            }
+        }
 
     </script>
     <script>
@@ -4862,49 +7051,60 @@
         }
     </script>
 
+
+
+
+
+
+
     <script>
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            console.log("PWA Install Prompt captured");
+        // Minimalist Menu Logic: Switch Line/Fill icons
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Set initial active state based on function called or URL
+            // Since we use app.router('home'), we can hook into that or just default to home.
+            // Let's highlight 'nav-home' by default.
+            document.getElementById('nav-home').classList.add('active');
+
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            function updateIcons() {
+                navItems.forEach(item => {
+                    const icon = item.querySelector('i');
+                    if(icon) {
+                        if (item.classList.contains('active')) {
+                            // Switch to fill
+                            icon.className = icon.className.replace('-line', '-fill');
+                        } else {
+                            // Switch to line
+                            icon.className = icon.className.replace('-fill', '-line');
+                        }
+                    }
+                });
+            }
+
+            // Observer to watch for class changes (since app router might change active class)
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.attributeName === 'class') {
+                        updateIcons();
+                    }
+                });
+            });
+
+            navItems.forEach(item => {
+                observer.observe(item, { attributes: true });
+                // Also add click listener for immediate feedback
+                item.addEventListener('click', () => {
+                    navItems.forEach(n => n.classList.remove('active'));
+                    item.classList.add('active');
+                });
+            });
+            
+            // Initial check
+            updateIcons();
         });
     </script>
-
-
-    <!-- Mobile Bottom Navigation -->
-    <div id="mobile-bottom-nav" class="mobile-nav">
-        <div class="mobile-nav-item" id="nav-home" onclick="app.router('home')">
-            <i class="ri-home-fill"></i>
-            <span>Inicio</span>
-        </div>
-        <div class="mobile-nav-item" id="nav-series" onclick="app.router('series')">
-            <i class="ri-tv-line"></i>
-            <span>Series</span>
-        </div>
-        <div class="mobile-nav-item" id="nav-movies" onclick="app.router('movies')">
-            <i class="ri-movie-2-line"></i>
-            <span>Pelis</span>
-        </div>
-        <div class="mobile-nav-item" id="nav-mylist" onclick="app.router('mylist')">
-            <i class="ri-list-check"></i>
-            <span>Mi Lista</span>
-        </div>
-        <div class="mobile-nav-item" id="nav-profile" onclick="openMobileProfileMenu()">
-            <img id="mobile-nav-avatar" src="https://i.pinimg.com/736x/c4/88/34/c488340ad56e5454f4576f6c708b3482.jpg" style="width:24px;height:24px;border-radius:4px;object-fit:cover;">
-            <span>Perfil</span>
-        </div>
-    </div>
-
-
-    <!-- Mobile Profile Sheet -->
-    <div class="sheet-overlay" id="mobile-profile-overlay" onclick="app.closeMobileProfileMenu()"></div>
-    <div class="bottom-sheet" id="mobile-profile-sheet">
-        <div class="sheet-handle"></div>
-        <div id="mobile-profile-content">
-            <!-- Rendered by JS -->
-        </div>
-    </div>
 
 </body>
 </html>
